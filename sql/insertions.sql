@@ -84,7 +84,7 @@ VALUES ("PHA-11172023-01", "• 1.75-oz., 2.75-oz., and 8-oz. packages containin
        "2023-11-17", "Public Health Alert", 7);
 
 INSERT INTO MANAGES (ID, RecallNum, [Modification Date])
-VALUES(3, 1, 12-20-2009);
+VALUES(3, 1, "2024-04-04 01:58:05");
 
 INSERT INTO AFFECTS (StateNum, RecallNum)
 VALUES(26, "1");
