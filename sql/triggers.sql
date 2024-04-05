@@ -51,4 +51,3 @@ BEGIN
         SELECT 1 FROM IS_SUBSCRIBED WHERE SubscriberID = OLD.SubscriberID
     );
 END;
-

@@ -62,6 +62,13 @@ def test_subscriber_tries_to_sub_to_nonexistent_state():
     print(result)
     assert(result == (2, 'State not found'))
     
+def test_subscriber_fetches_subscribed_states():
+    """Checks that an subscriber can fetch their subbed states"""
+    result = Manager.get_subscriber_states(1)
+    print(result)
+    assert(result == [{'StateNum': 26, 'StateName': 'Michigan'}])
+    
+    
 def test_subscriber_tries_to_get_recalls():
      """Checks that a subscriber can get their recall subscription info"""
      
@@ -295,4 +302,3 @@ def test_admin_edit_recall():
 
      
      
-
