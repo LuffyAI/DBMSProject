@@ -2,7 +2,6 @@
 ## Date: April 3, 2024
 ## Purpose: Creates a sample database for the Backend using default values and stores it in the DatabaseManager.
 ## Run this file if you want to reset the database to its default values.
-
 import sqlite3
 import os
 

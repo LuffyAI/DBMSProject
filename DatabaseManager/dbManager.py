@@ -37,14 +37,14 @@ class DBManager:
             # Check if the user is an admin
             self.cursor.execute("SELECT AdminID FROM ADMIN WHERE AdminID = ?", (user_id,))
             if self.cursor.fetchone():
-                return (1, "Admin")  
+                return (1, "Admin", user_id)  
 
             # Check if the user is a subscriber
             self.cursor.execute("SELECT SubscriberID FROM SUBSCRIBER WHERE SubscriberID = ?", (user_id,))
             if self.cursor.fetchone():
-                return (0, 'Sub')  
+                return (0, 'Sub', user_id)  
             
-            return (2, "User does not exist!")
+            return (2, "User does not exist!", None)
                         
         except Exception as e:
             return (3, f"Unexpected Error: {e}")
@@ -141,6 +141,33 @@ class DBManager:
             
         except Exception as e:
             return (3,f"Unexpected error: {e}")
+        finally:
+            self.close()
+            
+    def get_subscriber_states(self, subscriber_id):
+        """Fetch the states a user is subscribed to.
+          Returns a list of dictionaries with recall details.
+        """
+        states = []
+        try:
+            self.connect()
+            query = """
+               SELECT sub.StateNum, st.Name
+               FROM IS_SUBSCRIBED sub
+               JOIN STATE st ON sub.StateNum = st.StateNum
+               WHERE sub.SubscriberID = ?
+            """
+            self.cursor.execute(query, (subscriber_id,))
+            rows = self.cursor.fetchall()
+            for row in rows:
+                states.append({
+                    "StateNum": row[0],
+                    "StateName": row[1],
+                })
+            return states
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return []  # Return an empty list in case of error
         finally:
             self.close()
         

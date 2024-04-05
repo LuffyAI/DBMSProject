@@ -78,4 +78,3 @@ CREATE TABLE MANAGES (
     FOREIGN KEY (RecallNum) REFERENCES RECALL (RecallNum)
 );
 
-
