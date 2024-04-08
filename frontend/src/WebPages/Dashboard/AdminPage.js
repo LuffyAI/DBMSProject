@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './AdminPage.css';
+import { useEffect } from 'react'; // Import useEffect here
 import axios from 'axios';
 
 const AdminPage = () => {
