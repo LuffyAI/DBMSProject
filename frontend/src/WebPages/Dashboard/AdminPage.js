@@ -3,6 +3,9 @@ import './AdminPage.css';
 import { useEffect } from 'react'; // Import useEffect here
 import axios from 'axios';
 
+// NEED TO FETCH THE RECALLS FROM THE API ENDPOINT TO DISPLAY ALL THE RECALLS TO THE ADMIN
+// THE ADMIN CAN VIEW ALL RECALLS, ADD A RECALL, AND EDIT RECALLS
+
 const AdminPage = () => {
   const [recalls, setRecalls] = useState([]);
   const [newRecall, setNewRecall] = useState({
