@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './WebPages/SignUpIn/LoginPage';
 import SubscriberPage from './WebPages/Dashboard/AccountPage'; 
+import AdminPage from './WebPages/Dashboard/AdminPage'; // Import the AdminPage component
 import axios from 'axios';
 
 
@@ -56,9 +57,10 @@ const App = () => {
           )}
         </nav>
         <Routes>
-          <Route path="/" element={!isLoggedIn ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate replace to="/subscriber" />} />
+          <Route path="/" element={!isLoggedIn ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate replace to="/admin" />} />
           <Route path="/subscriber" element={isLoggedIn ? <SubscriberPage /> : <Navigate replace to="/" />} />
-</Routes>
+          <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate replace to="/" />} />
+        </Routes>
       </div>
     </Router>
   );

@@ -3,6 +3,8 @@ import './AccountPage.css';
 import { useEffect } from 'react'; // Import useEffect here
 import axios from 'axios'; // Import axios for making HTTP requests
 
+// NEED TO UPDATE - WHEN NOT SUBSCRIBED TO ANYTHING, SHOW NOTHING IN THE RECALL TABLE, WHEN THE USER
+// SUBSCRIBES TO SOMETHING, SHOW THEM THE RECALLS FROM THAT STATE
 
 const mockData = Array.from({ length: 100 }, (_, index) => ({
     recallNumber: `R${index + 1}`,
