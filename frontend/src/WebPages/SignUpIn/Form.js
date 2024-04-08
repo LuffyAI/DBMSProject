@@ -31,7 +31,11 @@ export default function Form(props) {
         localStorage.setItem('ID', data.ID);
         alert(`${data.role} login successful!`);
         props.onLoginSuccess(); // Notify the parent component about the login success
-        navigate('/subscriber'); 
+        if (data.role == 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/subscriber');
+        } 
     } else {
         alert('Login failed: ' + data.message);
     }
