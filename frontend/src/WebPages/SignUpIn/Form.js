@@ -19,25 +19,31 @@ export default function Form(props) {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('http://localhost:5000/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
-    if (data.success) {
-        localStorage.setItem('token', data.Token); // Save the token
-        localStorage.setItem('userName', data.email);
-        localStorage.setItem('ID', data.ID);
-        alert(`${data.role} login successful!`);
-        props.onLoginSuccess(); // Notify the parent component about the login success
-        if (data.role == 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/subscriber');
-        } 
-    } else {
-        alert('Login failed: ' + data.message);
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (data.success) {
+          localStorage.setItem('token', data.Token); // Save the token
+          localStorage.setItem('userName', data.email);
+          localStorage.setItem('ID', data.ID);
+          alert(`${data.role} login successful!`);
+          props.onLoginSuccess(); // Notify the parent component about the login success
+          if (data.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/subscriber');
+          } 
+      } else {
+          alert('Login failed: ' + data.message);
+      }
+    }
+    catch (error) {
+      console.error('Error logging in:', error);
+      alert('Login failed. Please try again.');
     }
   };
 
