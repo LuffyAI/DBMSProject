@@ -57,9 +57,9 @@ const App = () => {
           )}
         </nav>
         <Routes>
-          <Route path="/" element={!isLoggedIn ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate replace to="/subscriber" />} />
+          <Route path="/" element={!isLoggedIn ? <Login onLoginSuccess={handleLoginSuccess} /> : <Navigate replace to="/admin" />} />
           <Route path="/subscriber" element={isLoggedIn ? <SubscriberPage /> : <Navigate replace to="/" />} />
-          <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate replace to="/" />} /> {/* Add route for the AdminPage */}
+          <Route path="/admin" element={isLoggedIn ? <AdminPage /> : <Navigate replace to="/" />} />
         </Routes>
       </div>
     </Router>
