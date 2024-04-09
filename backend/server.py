@@ -265,7 +265,7 @@ def set_states():
           return jsonify({"error": "Unknown", "details": e}), 500
         
         
-@app.route("/recalls", methods=["POST"])
+@app.route("/recalls", methods=["GET"])
 def get_recalls():
         try:
             result, message = db.view_all_recalls()

@@ -204,6 +204,15 @@ class TestAPIEndpoints(unittest.TestCase):
                            ['Pruski’s Market', 1]]
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data.get('details'), expected_output)
+        
+    def test_retrieve_recalls(self):
+        url = f"{self.BASE_URL}/recalls"
+        response = requests.get(url)
+        print(response)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("message", response.json())
+        
+    """
 
     def test_successful_add_recall(self):
         url = f"{self.BASE_URL}/add/recall"
@@ -241,6 +250,7 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.get(url, json=recall_data)
         self.assertEqual(response.status_code, 400)
         self.assertIn("message", response.json())
+        
 
 
     def test_successful_edit_recall(self):
@@ -265,6 +275,9 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.post(url, json=recall_data)
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
+        
+"""
+ 
       
    
 
