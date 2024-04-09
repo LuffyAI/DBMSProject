@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+.pyc
 
 # testing
 /coverage
@@ -21,3 +22,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Attempt to ignore system-specific metadata files
+# This does not directly match `:Zone.Identifier` but is a precaution
+*~
+*.lock
+*Zone.Identifier*

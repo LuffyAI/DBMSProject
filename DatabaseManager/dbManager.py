@@ -4,6 +4,7 @@ from datetime import datetime
 class DBManager:
     def __init__(self, db_path):
         self.db_path = db_path
+        print(db_path)
         
     def connect(self):
         """Connects to the specified database"""
@@ -33,7 +34,12 @@ class DBManager:
             self.cursor.execute("SELECT ID FROM USER WHERE Email = ? AND Password = ?", (email, password))
             user = self.cursor.fetchone()
             
+            # If no user is found, return (2, "User does not exist!", None)
+            if user is None:
+             return (2, "User does not exist!", None)
+            
             user_id = user[0]
+            
             # Check if the user is an admin
             self.cursor.execute("SELECT AdminID FROM ADMIN WHERE AdminID = ?", (user_id,))
             if self.cursor.fetchone():
@@ -43,11 +49,9 @@ class DBManager:
             self.cursor.execute("SELECT SubscriberID FROM SUBSCRIBER WHERE SubscriberID = ?", (user_id,))
             if self.cursor.fetchone():
                 return (0, 'Sub', user_id)  
-            
-            return (2, "User does not exist!", None)
                         
         except Exception as e:
-            return (3, f"Unexpected Error: {e}")
+            return (3, f"Unexpected Error: {e}", None)
         finally:
             self.close()
         
@@ -93,7 +97,7 @@ class DBManager:
             
     def sub_to_state(self, subscriber_id, state_name):
         """Allows a subscriber to subscribe to a state.
-        Returns 0 on success, 1 on integrity error, 2 if state not found, and 3 for unexpected error.
+        Returns 0 on success, 1 on integrity error, 2 if state not found, 3 if subsriber not found, and 4 for unexpected error.
         """
         try:
             self.connect()
@@ -105,6 +109,13 @@ class DBManager:
             if not state_num:
                 return (2, "State not found")  
             
+            self.cursor.execute("SELECT SubscriberID FROM SUBSCRIBER WHERE SubscriberID = ?", (subscriber_id,))
+            user = self.cursor.fetchone()
+            
+            if not user:
+                return (3, "User not found")  
+            
+            
             # Subscribe the user to the state
             self.cursor.execute("INSERT INTO IS_SUBSCRIBED (SubscriberID, StateNum) VALUES (?, ?)", (subscriber_id, state_num[0]))
             self.conn.commit()
@@ -113,7 +124,7 @@ class DBManager:
         except sqlite3.IntegrityError as s:
             return (1, f"Integrity Error: {s}")
         except Exception as e:
-            return (3,f"Unexpected error: {e}")
+            return (4,f"Unexpected error: {e}")
         finally:
             self.close()
     
@@ -131,6 +142,12 @@ class DBManager:
             if not state_num:
                 return (2, "State not found") 
             
+            self.cursor.execute("SELECT SubscriberID FROM SUBSCRIBER WHERE SubscriberID = ?", (subscriber_id,))
+            user = self.cursor.fetchone()
+            
+            if not user:
+                return (3, "User not found")  
+            
             # Unsubscribe the user to the state
             self.cursor.execute("DELETE FROM IS_SUBSCRIBED WHERE SubscriberID = ? AND StateNum = ?", (subscriber_id, state_num[0]))
             self.conn.commit()
@@ -140,7 +157,7 @@ class DBManager:
                 return (1, f"Integrity Error: {s}")
             
         except Exception as e:
-            return (3,f"Unexpected error: {e}")
+            return (4,f"Unexpected error: {e}")
         finally:
             self.close()
             
@@ -259,7 +276,57 @@ class DBManager:
              return recall  
         finally:
             self.close()
+            
+    def view_all_recalls(self):
+        """
+        Grabs the recall information + company"
+        """
+        try:
+            self.connect()
+            self.cursor.execute("""
+        SELECT 
+            R.RecallNum, R.ProductName, R.Category, R.Qty, R.Class, R.Reason, 
+            R.Year, R.RiskLevel, R.OpenDate, R.Type, C.Title AS CompanyName,
+            (SELECT MAX(M.[Modification Date]) FROM MANAGES M WHERE M.RecallNum = R.RecallNum) AS LastModificationDate
+        FROM RECALL R
+        JOIN COMPANY C ON R.CompanyID = C.ID
+        """)
+            recall = self.cursor.fetchall()
+            
+            if recall is None:
+                return (1, "Not Found")
+            else:
+             return recall  
+        finally:
+            self.close()
+            
+    def view_recall_edit_history(self, recall_number):
+        """
+        Grabs the edit history of a specific recall along with the admins responsible for each edit.
+        """
+        try:
+            self.connect()
+            self.cursor.execute("""
+            SELECT
+                R.RecallNum, R.ProductName, R.Category, R.Qty, R.Class, R.Reason,
+                R.Year, R.RiskLevel, R.OpenDate, R.Type, C.Title AS CompanyName,
+                M.[Modification Date], M.ID AS AdminID
+            FROM RECALL R
+            JOIN COMPANY C ON R.CompanyID = C.ID
+            JOIN MANAGES M ON R.RecallNum = M.RecallNum
+            WHERE R.RecallNum = ?
+            ORDER BY M.[Modification Date] DESC
+            """, (recall_number,))
+            edits = self.cursor.fetchall()
 
+            if not edits:
+                return (1, "Not Found")
+            else:
+                return edits
+        finally:
+            self.close()
+
+        
     def edit_recall(self, admin_id, recall_num, updates):
         """
         Updates recall information. 'updates' should be a dictionary with column names as keys and new values as values.

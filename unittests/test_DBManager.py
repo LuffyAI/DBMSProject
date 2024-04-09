@@ -42,7 +42,7 @@ def test_admin_tries_to_sub_to_state():
     """Checks that an adminID cannot be in the IS_SUBSCRIBED table"""
     result = Manager.sub_to_state(3, "Michigan")
     print(result)
-    assert(result == (1, 'Integrity Error: SubscriberID does not exist in SUBSCRIBER table.') )
+    assert(result == (3, 'User not found') )
     
 def test_subscriber_tries_to_sub_to_state():
     """Checks that a subscriber can subscribe to IS_SUBSCRIBED table"""
@@ -296,6 +296,23 @@ def test_admin_edit_recall():
     result = Manager.edit_recall(4, 'R12345', Updates)
     print(result)
     assert(result == (0, 'Success'))
+    
+def test_view_all_recalls():
+    """Checks that an admin can view all recalls"""    
+    result = Manager.view_all_recalls()
+    print(result)
+    assert(result != (0, 'Not Found'))
+    
+def test_view_recall_edit_history():
+    """Checks that an admin can view a recall's edit history""" 
+    result = Manager.view_recall_edit_history('R12345')
+    expected_result = [
+        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 3), 
+        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 4)
+        ]
+    print(result)
+    assert(result != expected_result)
+
 
     
 

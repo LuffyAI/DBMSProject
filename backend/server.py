@@ -2,9 +2,13 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import sys
+import os
 sys.path.append('../')
 from DatabaseManager import dbManager
-db = dbManager.DBManager("../DatabaseManager/RecallDatabase.db")
+
+# If the DATABASE_URL environment variable is set, it uses the test_API.py database
+# If not set, it uses the main database
+db = dbManager.DBManager(os.getenv('DATABASE_URL', "../DatabaseManager/RecallDatabase.db"))
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'your-secret-key'
@@ -24,7 +28,7 @@ def login():
     result, message, id = db.handle_signin(email, password)
     access_token = create_access_token(identity=email)
     print(access_token)
-    
+
     if result == 0:
         # Subscriber
         return jsonify({"success": True, "role": "Subscriber", "ID": id,"email": email, "message": message, "Token": access_token}), 200
@@ -115,6 +119,8 @@ def subscribe():
         return jsonify({"error": message}), 409  # Conflict, integrity error
     elif result == 2:
         return jsonify({"error": message}), 404  # State not found
+    elif result == 3:
+        return jsonify({"error": message}), 404  # Subscriber not found
     else:
         return jsonify({"error": message}), 500  # Unexpected error
     
@@ -141,6 +147,108 @@ def unsubscribe():
         return jsonify({"error": message}), 404  # Subscriber not found
     else:
         return jsonify({"error": message}), 500  # Unexpected error
+
+
+@app.route("/subscription/details", methods=["GET"])
+def subscription_details():
+    # Insert subscriber details from the request
+    recall_details = request.json
+    subscriber_id = recall_details.get("subscriber_id")
+
+    # Call get_subscription_recalls information
+    recalls = db.get_subscription_recalls(subscriber_id)
+
+    # Return response based on the result
+    if recalls:
+        return jsonify({"recalls": recalls}), 200
+    else:
+        return jsonify({"message": "Subscriber ID was not found"}), 404
+
+############################################
+#         Admin API Endpoints         #
+############################################
+
+@app.route("/add/recall", methods=["POST"])
+def add_recall():
+    # Extract recall details from the request
+    recall_details = request.json
+    current_admin_id = recall_details.get("admin_id")
+
+    result, message = db.add_recall(current_admin_id, recall_details)
+
+    if result == 0:
+        return jsonify({"message": "Recall added successfully"}), 200
+    elif result == 1:
+        return jsonify({"error": "Integrity Error", "details": message}), 400
+    elif result == 2:
+        return jsonify({"error": "Unexpected Error", "details": message}), 500
+
+
+@app.route("/view/recall", methods=["GET"])
+def view_recall():
+    recall_num = request.json.get("recall_num")
+
+    result, message = db.view_recall(recall_num)
+
+    if result == 0:
+        return jsonify({"message": "Recall added successfully"}), 200
+    elif result == 1:
+        return jsonify({"error": "Integrity Error", "details": message}), 400
+    elif result == 2:
+        return jsonify({"error": "Unexpected Error", "details": message}), 500
+
+
+@app.route("/edit/recall", methods=["POST"])
+def edit_recall():
+
+    recall_details = request.json
+    current_admin_id = recall_details.get("admin_id")
+    recall_number = recall_details.get("recall_num")
+    recall_update = recall_details.get("updates")
+
+    result, message = db.edit_recall(current_admin_id, recall_number, recall_update)
+
+    if result == 0:
+        return jsonify({"message": "Recall updated successfully"}), 200
+    elif result == 1:
+        return jsonify({"error": "Integrity Error", "details": message}), 400
+    elif result == 2:
+        return jsonify({"error": "Unexpected Error", "details": message}), 500
+
+@app.route("/setAffectedStates", methods=["POST"])
+def set_states():
+        recall_details = request.json
+        current_admin_id = recall_details.get("admin_id")
+        recall_number = recall_details.get("recall_num")
+        state_number = recall_number.get("state_num")
+
+        result, message = db.set_affected_states(current_admin_id, recall_number, state_number)
+
+        if result == 0:
+            return jsonify({"message": "Recall added successfully"}), 200
+        elif result == 1:
+            return jsonify({"error": "Integrity Error", "details": message}), 400
+        elif result == 2:
+            return jsonify({"error": "Unexpected Error", "details": message}), 500
+        
+        
+@app.route("/recalls", methods=["POST"])
+def get_recalls():
+        result, message = db.view_all_recalls()
+        if result == 1:
+            return jsonify({"error": "Not Found", "details": message}), 404
+        else:
+            return jsonify({"message": "Success", "details": message}), 200
+        
+@app.route("/recall_edit", methods=["POST"])
+def get_recall_edit_history():
+        recall_details = request.json
+        recall_number = recall_details.get("recall_num")
+        result, message = db.view_recall_edit_history(recall_number)
+        if result == 1:
+            return jsonify({"error": "Not Found", "details": message}), 404
+        else:
+            return jsonify({"message": "Success", "details": message}), 200
 
 
 if __name__ == "__main__":
