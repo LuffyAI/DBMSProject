@@ -6,28 +6,37 @@ import axios from 'axios'; // Import axios for making HTTP requests
 // NEED TO UPDATE - WHEN NOT SUBSCRIBED TO ANYTHING, SHOW NOTHING IN THE RECALL TABLE, WHEN THE USER
 // SUBSCRIBES TO SOMETHING, SHOW THEM THE RECALLS FROM THAT STATE
 
-const mockData = Array.from({ length: 100 }, (_, index) => ({
-    recallNumber: `R${index + 1}`,
-    name: `Product ${index + 1}`,
-    category: `Category ${index % 5 + 1}`,
-    closeDate: `2023-0${index % 5 + 1}-12`,
-    qty: Math.floor(Math.random() * 100),
-    class: `Class ${index % 3 + 1}`,
-    reason: `Reason ${index % 4 + 1}`,
-    year: 2023,
-    type: `Type ${index % 2 + 1}`,
-    openDate: `2023-0${index % 5 + 1}-01`,
-    riskLevel: `Level ${index % 3 + 1}`
-  }));
 
 const states = [
   "California", "Michigan", "Texas"
 ];
 
 function AccountPage({ userName }) {
-    const [selectedStates, setSelectedStates] = useState([]);
-    const subscriber_id = localStorage.getItem('ID'); // Corrected this line
+  const [selectedStates, setSelectedStates] = useState([]);
+  const [recalls, setRecalls] = useState([]);
+  const subscriber_id = localStorage.getItem('ID');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+    // Define fetchRecallDetails outside of useEffect so it can be reused
+    const fetchRecallDetails = async () => {
+      if (!subscriber_id) {
+          setRecalls([]);
+          return;
+      }
+      
+      try {
+          const response = await axios.post('http://localhost:5000/subscription_details', { subscriber_id });
+          if (response.data && response.data.recalls) {
+            console.log(response)  
+            setRecalls(response.data.recalls);
+          } else {
+              setRecalls([]);
+          }
+      } catch (error) {
+          console.error('Failed to fetch recall details', error);
+      }
+  };
 
     useEffect(() => {
       // Fetch subscribed states when the component mounts
@@ -44,6 +53,7 @@ function AccountPage({ userName }) {
       };
 
       fetchSubscribedStates();
+      fetchRecallDetails();
     }, [subscriber_id]);
 
 
@@ -54,34 +64,63 @@ function AccountPage({ userName }) {
       setSelectedStates(updatedSelection);
     };
   
-     const saveSelection = async () => {
-    // Assuming there's a mechanism to get the userId or userName
-    for (const state of states) {
-      if (selectedStates.includes(state)) {
-        // Subscribe to this state
-        try {
-          await axios.post('http://localhost:5000/subscribe', { subscriber_id, state_name: state });
-        } catch (error) {
-          console.error(`Failed to subscribe to ${state}`, error);
+   
+
+  useEffect(() => {
+    const fetchRecallDetails = async () => {
+      try {
+        const response = await axios.post('http://localhost:5000/subscription_details', { subscriber_id });
+        if (response.data && response.data.recalls) {
+          setRecalls(response.data.recalls);
+        } else {
+          setRecalls([]); // Handle no data scenario
         }
-      } else {
-        // Unsubscribe from this state
-        try {
-          await axios.post('http://localhost:5000/unsubscribe', { subscriber_id, state_name: state });
-        } catch (error) {
-          console.error(`Failed to unsubscribe from ${state}`, error);
-        }
+      } catch (error) {
+        console.error('Failed to fetch recall details', error);
+        // Handle error scenario
       }
+    };
+
+    if (subscriber_id) {
+      fetchRecallDetails();
     }
+  }, [subscriber_id])
+
+  const saveSelection = async () => {
+    let hasSubscribedStates = false;
+
+    for (const state of states) {
+        if (selectedStates.includes(state)) {
+            hasSubscribedStates = true; // At least one state is subscribed
+            try {
+                await axios.post('http://localhost:5000/subscribe', { subscriber_id, state_name: state });
+            } catch (error) {
+                console.error(`Failed to subscribe to ${state}`, error);
+            }
+        } else {
+            try {
+                await axios.post('http://localhost:5000/unsubscribe', { subscriber_id, state_name: state });
+            } catch (error) {
+                console.error(`Failed to unsubscribe from ${state}`, error);
+            }
+        }
+    }
+
     alert('Selections saved!');
-  };
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // Set the number of items you want per page
+
+    // Only fetch recall details if there are subscribed states, otherwise clear the recalls data
+    if (hasSubscribedStates) {
+        fetchRecallDetails(); // Refetch recall details after saving selections
+    } else {
+        setRecalls([]); // Clear recalls data if unsubscribed from all states
+    }
+};
+
   
     // Calculate the currently displayed items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = mockData.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = recalls.slice(indexOfFirstItem, indexOfLastItem);
   
     // Change page
     const paginate = pageNumber => setCurrentPage(pageNumber);
@@ -122,54 +161,57 @@ function AccountPage({ userName }) {
         </div>
         <button onClick={saveSelection} className="btn-save">Save Selection</button>
         <h3>Subscriptions</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Recall#</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Close Date</th>
-            <th>Qty</th>
-            <th>Class</th>
-            <th>Reason</th>
-            <th>Year</th>
-            <th>Type</th>
-            <th>Open Date</th>
-            <th>Risk Level</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((item, index) => (
-            <tr key={index}>
-              <td>{item.recallNumber}</td>
-              <td>{item.name}</td>
-              <td>{item.category}</td>
-              <td>{item.closeDate}</td>
-              <td>{item.qty}</td>
-              <td>{item.class}</td>
-              <td>{item.reason}</td>
-              <td>{item.year}</td>
-              <td>{item.type}</td>
-              <td>{item.openDate}</td>
-              <td>{item.riskLevel}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            {recalls.length > 0 ? (
+                <div className="table-responsive">
+                <table>
+  <thead>
+    <tr>
+      <th>Recall Number</th>
+      <th>Product Name</th>
+      <th>Category</th>
+      <th>Close Date</th>
+      <th>Quantity</th>
+      <th>Class</th>
+      <th>Reason</th>
+      <th>Year</th>
+      <th>Type</th>
+      <th>Open Date</th>
+      <th>Risk Level</th>
+      <th>Company Title</th> {/* Assuming you want to add this as well */}
+    </tr>
+  </thead>
+                    <tbody>
+                        {currentItems.map((recall, index) => (
+                            <tr key={index}>
+                                {/* Replace these with your actual data fields from the API */}
+                                <td>{recall.RecallNum}</td>
+                                <td>{recall.ProductName}</td>
+                                <td>{recall.Category}</td>
+                                <td>{recall.CloseDate}</td>
+                                <td>{recall.Qty}</td>
+                                <td>{recall.Class}</td>
+                                <td>{recall.Reason}</td>
+                                <td>{recall.Year}</td>
+                                <td>{recall.Type}</td>
+                                <td>{recall.OpenDate}</td>
+                                <td>{recall.RiskLevel}</td>
+                                <td>{recall.CompanyTitle}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                </div>
+            ) : (
+                <p>No recall details available. Please ensure you are subscribed to notifications.</p>
+            )}
 
-      {/* Pagination */}
-      <div className='pagination'>
-        {Array.from({ length: Math.ceil(mockData.length / itemsPerPage) }, (_, i) => (
-          <button key={i} onClick={() => paginate(i + 1)}>
-            {i + 1}
-          </button>
-        ))}
-      </div>
-        
-      </div>
-
-      
+            <div className='pagination'>
+                {Array.from({ length: Math.ceil(recalls.length / itemsPerPage) }, (_, i) => (
+                    <button key={i} onClick={() => paginate(i + 1)}>{i + 1}</button>
+                ))}
+            </div>
+        </div>
     );
-  }
+}
   
   export default AccountPage;

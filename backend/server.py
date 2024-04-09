@@ -149,7 +149,7 @@ def unsubscribe():
         return jsonify({"error": message}), 500  # Unexpected error
 
 
-@app.route("/subscription/details", methods=["GET"])
+@app.route("/subscription_details", methods=["POST"])
 def subscription_details():
     # Insert subscriber details from the request
     recall_details = request.json
@@ -160,6 +160,7 @@ def subscription_details():
 
     # Return response based on the result
     if recalls:
+        print(jsonify({"recalls": recalls}), 200)
         return jsonify({"recalls": recalls}), 200
     else:
         return jsonify({"message": "Subscriber ID was not found"}), 404

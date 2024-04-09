@@ -51,3 +51,11 @@ BEGIN
         SELECT 1 FROM IS_SUBSCRIBED WHERE SubscriberID = OLD.SubscriberID
     );
 END;
+
+CREATE TRIGGER CheckCompanyExistsBeforeRecallInsert
+BEFORE INSERT ON RECALL
+FOR EACH ROW
+BEGIN
+    SELECT RAISE(ABORT, 'No corresponding company exists.')
+    WHERE NOT EXISTS (SELECT 1 FROM COMPANY WHERE ID = NEW.CompanyID);
+END;
