@@ -22,6 +22,38 @@ const AdminPage = () => {
     riskLevel: ''
   });
   const userName = localStorage.getItem('userName'); // Retrieve username from localStorage
+  const [showRankingsModal, setShowRankingsModal] = useState(false);
+  const [companyRankings, setCompanyRankings] = useState([]);
+
+  const fetchCompanyRankings = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/companyRecalls');
+      setCompanyRankings(response.data.details); // Adjust according to the actual response structure
+      setShowRankingsModal(true);
+    } catch (error) {
+      console.error('Failed to fetch company rankings', error);
+    }
+  };
+
+  const RankingsModal = ({ show, onClose, rankings }) => {
+    if (!show) {
+      return null;
+    }
+  
+    return (
+      <div className="modal-backdrop">
+        <div className="modal-content">
+          <h2>Company Recall Rankings</h2>
+          <ul>
+            {rankings.map((rank, index) => (
+              <li key={index}>{rank.Title} - {rank.TotalRecalls} recalls</li>
+            ))}
+          </ul>
+          <button onClick={onClose}>Close</button>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     const fetchRecalls = async () => {
@@ -70,6 +102,7 @@ const AdminPage = () => {
     <div>
       <h2>Admin Page</h2>
       <p>Welcome, {userName}!</p>
+      <button onClick={() => fetchCompanyRankings()}>Rankings</button>
       <div>
         <h3>Add Recall</h3>
         <form>
@@ -84,6 +117,7 @@ const AdminPage = () => {
           <input type="text" name="type" value={newRecall.type} onChange={handleInputChange} placeholder="Type" required />
           <input type="date" name="openDate" value={newRecall.openDate} onChange={handleInputChange} placeholder="Open Date" required />
           <input type="text" name="riskLevel" value={newRecall.riskLevel} onChange={handleInputChange} placeholder="Risk Level" required />
+          <input type="text" name="Company" value={newRecall.company} onChange={handleInputChange} placeholder="Company" required />
           <button type="button" onClick={handleAddRecall}>Add Recall</button>
         </form>
       </div>
@@ -101,6 +135,7 @@ const AdminPage = () => {
             <th>Type</th>
             <th>Open Date</th>
             <th>Risk Level</th>
+            <th>Company</th>
             <th>Edit</th>
           </tr>
         </thead>
@@ -125,6 +160,11 @@ const AdminPage = () => {
           ))}
         </tbody>
       </table>
+      <RankingsModal 
+      show={showRankingsModal} 
+      onClose={() => setShowRankingsModal(false)} 
+      rankings={companyRankings} 
+    />
     </div>
   );
 };

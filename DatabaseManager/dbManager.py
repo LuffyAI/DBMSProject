@@ -300,6 +300,28 @@ class DBManager:
         finally:
             self.close()
             
+    def view_company_rankings(self):
+        """
+        Views the ranking of companies based on the total number of recalls, ordered from highest to lowest.
+        """
+        try:
+            self.connect()
+            self.cursor.execute("""
+            SELECT
+            Title, TotalRecalls
+            FROM COMPANY
+            ORDER BY TotalRecalls DESC
+            """)
+            rankings = self.cursor.fetchall()
+            print(rankings, "hello")
+
+            if not rankings:
+                return (1, "No company rankings found.")
+            else:
+                return (0, rankings)
+        finally:
+            self.close()
+            
     def view_recall_edit_history(self, recall_number):
         """
         Grabs the edit history of a specific recall along with the admins responsible for each edit.
