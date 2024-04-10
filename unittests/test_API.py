@@ -25,7 +25,7 @@ time.sleep(3)
 
 
 class TestAPIEndpoints(unittest.TestCase):
-    BASE_URL = "http://localhost:5000"  # Update this if your API is hosted elsewhere
+    BASE_URL = "http://localhost:3000"  # Update this if your API is hosted elsewhere
 
 
     def test_successful_login(self):
@@ -211,47 +211,72 @@ class TestAPIEndpoints(unittest.TestCase):
         print(response)
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
-        
-    """
 
     def test_successful_add_recall(self):
         url = f"{self.BASE_URL}/add/recall"
-        user_data = {
-            "admin_id": 4
+        recall_data = {
+            "admin_id": 4,
+            "recall_details": {
+                "RecallNum": "001-1999",
+                "ProductName": "Test Product",
+                "Category": "Heat Treated - Shelf Stable",
+                "CloseDate": "2024-03-03",
+                "Qty": 1000,
+                "Class": "Public Health Alert",
+                "Reason": "Unreported Allergens",
+                "Year": "2024",
+                "RiskLevel": "High",
+                "OpenDate": "2024-01-01",
+                "Type": "Active Recall",
+                "CompanyID": 3
+            }
         }
-        response = requests.post(url, json=user_data)
+        response = requests.post(url, json=recall_data)
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
 
     def test_unsuccessful_add_recall(self):
         url = f"{self.BASE_URL}/add/recall"
-        user_data = {
-            "admin_id": 100     # not in admin table
+        recall_data = {
+            "admin_id": 4,    # will automatically assume this is a valid admin id
+            # need to make sure non-admin can't access this endpoint
+            "recall_details": {
+                "RecallNum": "",  # intentionally leaving this blank (should give S.C. of 400; can't be null)
+                "ProductName": "Test Product",
+                "Category": "Heat Treated - Shelf Stable",
+                "CloseDate": "2024-03-03",
+                "Qty": 1000,
+                "Class": "Public Health Alert",
+                "Reason": "Unreported Allergens",
+                "Year": "2024",
+                "RiskLevel": "High",
+                "OpenDate": "2024-01-01",
+                "Type": "Active Recall",
+                "CompanyID": 3
+            }
         }
-        response = requests.post(url, json=user_data)
+        response = requests.post(url, json=recall_data)
+        print(recall_data)
         print(response)
         self.assertEqual(response.status_code, 400)
-        self.assertIn("message", response.json())
+        self.assertIn("error", response.json())
 
     def test_successful_view_recall(self):
-        url = f"{self.BASE_URL}/view/recall"
-        recall_data = {
-            "recall_num": "004-2024"
-        }
-        response = requests.get(url, json=recall_data)
+        url = f"{self.BASE_URL}/view/recall?recall_num=PHA-11172023-01"
+
+        response = requests.get(url)
+        print(response)
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
 
-    def test_unsuccessful_view_recall(self):
-        url = f"{self.BASE_URL}/view/recall"
-        recall_data = {
-            "recall_num": "111-2015"    # not a valid recall num
-        }
-        response = requests.get(url, json=recall_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("message", response.json())
-        
 
+    def test_unsuccessful_view_recall(self):
+        url = f"{self.BASE_URL}/view/recall?recall_num=000-2000"
+
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", response.json())
+        
 
     def test_successful_edit_recall(self):
         url = f"{self.BASE_URL}/edit/recall"
@@ -270,13 +295,13 @@ class TestAPIEndpoints(unittest.TestCase):
         recall_data = {
             "admin_id": 4,
             "recall_num": "004-2024",
-            "state_num": 28
+            "state_nums": [28]
         }
         response = requests.post(url, json=recall_data)
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
         
-"""
+
  
       
    

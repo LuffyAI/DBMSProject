@@ -273,7 +273,7 @@ class DBManager:
             if recall is None:
                 return (1, "Not Found")
             else:
-             return recall  
+             return (0, recall)
         finally:
             self.close()
             

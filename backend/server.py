@@ -138,7 +138,8 @@ def subscribe():
             return jsonify({"error": message}), 500  # Unexpected error
     except Exception as e:
         return jsonify({"error": "Unknown", "details": e}), 500
-    
+
+
 @app.route("/unsubscribe", methods=['POST'])
 def unsubscribe():
     try:
@@ -164,7 +165,7 @@ def unsubscribe():
         else:
             return jsonify({"error": message}), 500  # Unexpected error
     except Exception as e:
-          return jsonify({"error": "Unknown", "details":e}), 500
+        return jsonify({"error": "Unknown", "details":e}), 500
 
 
 @app.route("/subscription_details", methods=["POST"])
@@ -195,9 +196,28 @@ def add_recall():
     try:
         # Extract recall details from the request
         recall_details = request.json
-        current_admin_id = recall_details.get("admin_id")
 
-        result, message = db.add_recall(current_admin_id, recall_details)
+        # Extract admin_id and recall_details from the recall_details
+        current_admin_id = recall_details.get("admin_id")
+        recall_details_dict = recall_details.get("recall_details")
+        # Construct the recall_details tuple in the correct order
+        recall_values = (
+            recall_details_dict.get("RecallNum"),
+            recall_details_dict.get("ProductName"),
+            recall_details_dict.get("Category"),
+            recall_details_dict.get("CloseDate"),
+            recall_details_dict.get("Qty"),
+            recall_details_dict.get("Class"),
+            recall_details_dict.get("Reason"),
+            recall_details_dict.get("Year"),
+            recall_details_dict.get("RiskLevel"),
+            recall_details_dict.get("OpenDate"),
+            recall_details_dict.get("Type"),
+            recall_details_dict.get("CompanyID")
+        )
+
+
+        result, message = db.add_recall(current_admin_id, recall_values)
 
         if result == 0:
             return jsonify({"message": "Recall added successfully"}), 200
@@ -206,24 +226,26 @@ def add_recall():
         elif result == 2:
             return jsonify({"error": "Unexpected Error", "details": message}), 500
     except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
+        return jsonify({"error": "Unknown", "details": e}), 500
 
 
 @app.route("/view/recall", methods=["GET"])
 def view_recall():
     try:
-        recall_num = request.json.get("recall_num")
+        recall_num = request.args.get("recall_num")
+        # Ensure recall_num is not None or empty before proceeding
+        if not recall_num:
+            return jsonify({"error": "Recall number is required"}), 400
 
+        # Proceed with your logic to view recall information
         result, message = db.view_recall(recall_num)
 
-        if result == 0:
-            return jsonify({"message": "Recall added successfully"}), 200
-        elif result == 1:
-            return jsonify({"error": "Integrity Error", "details": message}), 400
-        elif result == 2:
-            return jsonify({"error": "Unexpected Error", "details": message}), 500
+        if result == 1:
+            return jsonify({"error": "Recall not found", "details": message}), 404
+        else:
+            return jsonify({"message": "Recall found"}), 200
     except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
+        return jsonify({"error": "Unknown", "details": e}), 500
 
 
 @app.route("/edit/recall", methods=["POST"])
@@ -243,7 +265,7 @@ def edit_recall():
         elif result == 2:
             return jsonify({"error": "Unexpected Error", "details": message}), 500
     except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
+        return jsonify({"error": "Unknown", "details": e}), 500
 
 @app.route("/setAffectedStates", methods=["POST"])
 def set_states():
@@ -251,9 +273,9 @@ def set_states():
         recall_details = request.json
         current_admin_id = recall_details.get("admin_id")
         recall_number = recall_details.get("recall_num")
-        state_number = recall_number.get("state_num")
+        state_numbers = recall_details.get("state_nums")
 
-        result, message = db.set_affected_states(current_admin_id, recall_number, state_number)
+        result, message = db.set_affected_states(current_admin_id, recall_number, state_numbers)
 
         if result == 0:
             return jsonify({"message": "Recall added successfully"}), 200
@@ -262,7 +284,7 @@ def set_states():
         elif result == 2:
             return jsonify({"error": "Unexpected Error", "details": message}), 500
     except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
+        return jsonify({"error": "Unknown", "details": e}), 500
         
         
 @app.route("/recalls", methods=["GET"])
@@ -278,7 +300,7 @@ def get_recalls():
         
 @app.route("/recall_edit", methods=["POST"])
 def get_recall_edit_history():
-      try:
+    try:
         recall_details = request.json
         recall_number = recall_details.get("recall_num")
         result, message = db.view_recall_edit_history(recall_number)
@@ -286,8 +308,8 @@ def get_recall_edit_history():
             return jsonify({"error": "Not Found", "details": message}), 404
         else:
             return jsonify({"message": "Success", "details": message}), 200
-      except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
+    except Exception as e:
+        return jsonify({"error": "Unknown", "details": e}), 500
         
 @app.route("/companyRecalls", methods=["GET"])
 def get_company_rankings():

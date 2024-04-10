@@ -8,7 +8,7 @@ import os
 files = ['sql/tables.sql', 'sql/triggers.sql', 'sql/insertions.sql']
 
 def execute_sql_file(cursor, filepath):
-        with open(filepath, 'r') as file:
+        with open(filepath, 'r', encoding="utf-8") as file:
             sql_script = file.read()
         cursor.executescript(sql_script)
 
