@@ -53,7 +53,7 @@ INSERT INTO COMPANY (ID, TotalRecalls, Contact, Title)
   VALUES(7, 0, "pruskismarket@yahoo.com" ,"Pruski’s Market");
   
   INSERT INTO RECALL (RecallNum, ProductName, Category, CloseDate, Qty, Class, Reason, Year, RiskLevel, OpenDate, Type, CompanyID)
-VALUES (1, 'Test Product', 'Egg Products', '2024-03-25', 100, 'Class 1', 'Misbranding', "2024", 'High', '2024-03-20', 'Outbreak', 1);
+VALUES ("1", 'Test Product', 'Egg Products', '2024-03-25', 100, 'Class 1', 'Misbranding', "2024", 'High', '2024-03-20', 'Outbreak', 1);
 
 INSERT INTO RECALL (RecallNum, ProductName, Category, CloseDate, Qty, Class, Reason, Year, RiskLevel, OpenDate, Type, CompanyID)
 VALUES ("013-2024", "5.5-oz. clear plastic bowl containers with “kroger APPLE WALNUT WITH CHICKEN SALAD KIT FOR ONE” with use by dates of 03/12/24 through 03/22/24, lot codes TFPM059B41, TFPM060B41, TFPM061A41, TFPM062A41, TFPM063B41, TFPM064A41, TFPM064B41, TFPM065A41, TFP"

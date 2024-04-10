@@ -17,17 +17,20 @@ init(db_path, sql_files)
 # Set as an environment variable
 os.environ['DATABASE_URL'] = db_path
 
-# Turns on the Flask Web Server automatically to access the endpoints
-python_executable = sys.executable
-script_path = "../backend/server.py"
-process = subprocess.Popen([python_executable, script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(3)
-
 
 class TestAPIEndpoints(unittest.TestCase):
     BASE_URL = "http://localhost:5000"  # Update this if your API is hosted elsewhere
-
-
+    
+    
+    @classmethod
+    def setUpClass(cls):
+        # Your existing setup code to start the Flask server
+        python_executable = sys.executable
+        script_path = "../backend/server.py"
+        cls.process = subprocess.Popen([python_executable, script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        time.sleep(3)  # Wait a bit for the server to start
+        
+        
     def test_successful_login(self):
         """Tests the successful login payload"""
         url = f"{self.BASE_URL}/login"
@@ -137,6 +140,7 @@ class TestAPIEndpoints(unittest.TestCase):
             # Or use self.fail("Expected JSON response not received") to explicitly fail the test if no JSON response is received
             pass
 
+    
     def test_successful_subscription_details(self):
         url = f"{self.BASE_URL}/subscription_details"
         recall_data = {
@@ -158,7 +162,7 @@ class TestAPIEndpoints(unittest.TestCase):
                             'ProductName': '1-lb. plastic tubs labeled as &quot;Sysco Classic Chicken Flavored Base&quot; with lot code 02673 and packaged in a case labeled as &quot;Sysco Classic BEEF BASE CF&quot; with lot code 02673 represented on the label.', 
                             'Qty': 200, 
                             'Reason': 'Unreported Allergens', 
-                            'RecallNum': '003-2024', 
+                            'RecallNum': "003-2024", 
                             'RiskLevel': 'Class I', 
                             'StateName': 'California', 
                             'Type': 'Closed Recall', 
@@ -178,7 +182,7 @@ class TestAPIEndpoints(unittest.TestCase):
                             'Type': 'Public Health Alert', 
                             'Year': ''}]
         self.assertEqual(response_data.get('recalls'), expected_output)
-
+    
     def test_unsuccessful_subscription_details(self):
         url = f"{self.BASE_URL}/subscription_details"
         recall_data = {
@@ -195,7 +199,7 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.get(url)
         response_data = response.json() 
         print(response_data)
-        expected_output = [['FakeCompany', 1],
+        expected_output = [['FakeCompany', 2],
                            ['Taylor Farms’ Consumer Line', 1], 
                            ['Chief Operating Officer', 1], 
                            ['General Manager, Macgregors Meat &amp; Seafood Ltd', 1], 
@@ -208,9 +212,49 @@ class TestAPIEndpoints(unittest.TestCase):
     def test_retrieve_recalls(self):
         url = f"{self.BASE_URL}/recalls"
         response = requests.get(url)
-        print(response)
+        print(response.json())
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", response.json())
+        
+       
+    def test_add_recall(self):
+        recall_details = {
+            "recall_num": "R12345",
+            "product_name": "Example Product Name",
+            "category": "Not Heat Treated - Shelf Stable",
+            "qty": 100,
+            "class": "Class 1",
+            "reason": "Mislabeling",
+            "year": "2023",
+            "risklevel": "High",
+            "openDate": "2023-01-01",
+            "closeDate": "2023-01-01",
+            "type": "Active Recall",
+            "companyID": "1",
+            "states": [],
+            "admin_id": 3,
+        }
+        
+        url = f"{self.BASE_URL}/add"
+        response = requests.post(url, json=recall_details)
+        response_data = response.json()
+
+        # Adjust the expected_output according to what the API actually returns
+        expected_output = "Success"  # This should match the actual expected detail your API returns
+
+        # Print response data for debugging
+        print(response_data)
+
+        # Assertions
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data.get('message'), expected_output)
+        
+    @classmethod
+    def tearDownClass(cls):
+        # Terminate the Flask server process when done with the tests
+        cls.process.terminate()
+        cls.process.wait()  # Wait for the process to terminate
+
         
     """
 
@@ -278,11 +322,8 @@ class TestAPIEndpoints(unittest.TestCase):
         
 """
  
-      
-   
-
-
 if __name__ == "__main__":
     unittest.main()
     # Unsets environment variable
     del os.environ['DATABASE_URL']
+    

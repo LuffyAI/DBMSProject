@@ -190,25 +190,6 @@ def subscription_details():
 #         Admin API Endpoints         #
 ############################################
 
-@app.route("/add/recall", methods=["POST"])
-def add_recall():
-    try:
-        # Extract recall details from the request
-        recall_details = request.json
-        current_admin_id = recall_details.get("admin_id")
-
-        result, message = db.add_recall(current_admin_id, recall_details)
-
-        if result == 0:
-            return jsonify({"message": "Recall added successfully"}), 200
-        elif result == 1:
-            return jsonify({"error": "Integrity Error", "details": message}), 400
-        elif result == 2:
-            return jsonify({"error": "Unexpected Error", "details": message}), 500
-    except Exception as e:
-          return jsonify({"error": "Unknown", "details": e}), 500
-
-
 @app.route("/view/recall", methods=["GET"])
 def view_recall():
     try:
@@ -299,7 +280,83 @@ def get_company_rankings():
             return jsonify({"message": "Success", "details": message}), 200
       except Exception as e:
           return jsonify({"error": "Unknown", "details": e}), 500
+      
+@app.route("/add", methods=["POST"])
+def add_recall():
+    try:
+        recall_details = request.json
+        # Use .get() for optional fields and direct access [] for required fields with default values or where you handle KeyError
+        recall_number = recall_details.get("recall_num")  # Use .get() for safer access
+        
+        # Ensure all fields are correctly accessed
+        add_recall_payload = (
+            recall_number,
+            recall_details["product_name"],  # Direct access, assuming "product_name" is mandatory
+            recall_details.get("category"),
+            recall_details.get("closeDate"),
+            recall_details.get("qty"),
+            recall_details.get("class"),
+            recall_details.get("reason"),
+            recall_details.get("year"),
+            recall_details.get("risklevel"),
+            recall_details.get("openDate"),
+            recall_details.get("type"),
+            recall_details.get("companyID"),
+        )
+        
+        print(request.json)
+        
+        states = recall_details.get("states", [])  # Provide a default empty list if not found
+        admin_id = recall_details.get("admin_id")
+        
+        # Assuming `db` is a database instance that has a method `add_recall` implemented
+        result, message = db.add_recall(admin_id, states, add_recall_payload)
+        
+        if result == 1:
+            return jsonify({"error": "Not Found", "details": message}), 404
+        elif result == 0:
+            return jsonify({"message": "Success", "details": message}), 200
+    except Exception as e:
+        return jsonify({"error": "Unknown", "details": str(e)}), 500
 
+
+@app.route("/update", methods=["POST"])
+def update_recall():
+    try:
+        recall_details = request.json
+        # Use .get() for optional fields and direct access [] for required fields with default values or where you handle KeyError
+        recall_number = recall_details.get("recall_num")  # Use .get() for safer access
+        
+        # Ensure all fields are correctly accessed
+        updates = (
+            recall_number,
+            recall_details["product_name"],  # Direct access, assuming "product_name" is mandatory
+            recall_details.get("category"),
+            recall_details.get("closeDate"),
+            recall_details.get("qty"),
+            recall_details.get("class"),
+            recall_details.get("reason"),
+            recall_details.get("year"),
+            recall_details.get("risklevel"),
+            recall_details.get("openDate"),
+            recall_details.get("type"),
+            recall_details.get("companyID"),
+        )
+        
+        print(request.json)
+        
+        states = recall_details.get("states", [])  # Provide a default empty list if not found
+        admin_id = recall_details.get("admin_id")
+        
+        # Assuming `db` is a database instance that has a method `add_recall` implemented
+        result, message = db.edit_recall(admin_id, recall_number, updates)
+        
+        if result == 1:
+            return jsonify({"error": "Not Found", "details": message}), 404
+        elif result == 0:
+            return jsonify({"message": "Success", "details": message}), 200
+    except Exception as e:
+        return jsonify({"error": "Unknown", "details": str(e)}), 500
 
 
 if __name__ == "__main__":
