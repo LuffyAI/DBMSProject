@@ -233,30 +233,64 @@ class DBManager:
             self.close()
         
     ##ddd
-    def add_recall(self, admin_id, recall_details):
+    def add_recall(self, admin_id, states, recall_details):
         """
-        Adds a recall record to the RECALL table.
+        Adds a recall record to the RECALL table and associates the recall with affected states.
         """
         try:
             self.connect()
             
-            # Insert new recall entry
+            # Assuming recall_details is a tuple and the last element is the company title
+            company_title = recall_details[-1]
+            
+            # Use placeholders for safe SQL queries
+            self.cursor.execute("SELECT ID FROM COMPANY WHERE Title = ?", (company_title,))
+            company_row = self.cursor.fetchone()
+            
+            if company_row is None:
+                print(f"Company with title {company_title} not found.")
+                return (1, "Company not found")
+            
+            companyID = company_row[0]
+            print(f"CompanyID: {companyID}")
+            
+            # Replace company title with companyID in recall_details
+            recall_details_list = list(recall_details)
+            recall_details_list[-1] = companyID
+            recall_details = tuple(recall_details_list)
+            
+            # Insert new recall entry into RECALL table
             self.cursor.execute(
                 "INSERT INTO RECALL (RecallNum, ProductName, Category, CloseDate, Qty, Class, Reason, Year, RiskLevel, OpenDate, Type, CompanyID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 recall_details)
             
+            print("yes")
+            # Get the RecallNum from recall_details
+            recall_num = recall_details[0]
+           
+            
+            # For each state in the provided states array, find its StateNum and insert into AFFECTS table
+            for state_name in states:
+                self.cursor.execute("SELECT StateNum FROM STATE WHERE Name = ?", (state_name,))
+                state_num = self.cursor.fetchone()
+                if state_num:
+                    self.cursor.execute(
+                        "INSERT INTO AFFECTS (StateNum, RecallNum) VALUES (?, ?)", 
+                        (state_num[0], recall_num))
+            
             # Automatically log this action
             modification_date = datetime.now()
-            edit_result = self.log_admin_edit_history(admin_id, recall_details[0], modification_date) 
+            edit_result = self.log_admin_edit_history(admin_id, recall_num, modification_date) 
             if edit_result[0] != 0:
                     return edit_result
-            
             
             self.conn.commit()
             return (0, "Success")
         except sqlite3.IntegrityError as e:
+            print(e)
             return (1, f"Integrity Error: {e}")
         except Exception as e:
+            print(e)
             return (2, f"Unexpected Error: {e}")
         finally:
             self.close()
@@ -279,24 +313,44 @@ class DBManager:
             
     def view_all_recalls(self):
         """
-        Grabs the recall information + company"
+        Grabs the recall information + company, and then fetches states affected by the recall.
         """
         try:
             self.connect()
+            # Fetch the basic recall information and company name
             self.cursor.execute("""
-        SELECT 
-            R.RecallNum, R.ProductName, R.Category, R.Qty, R.Class, R.Reason, 
-            R.Year, R.RiskLevel, R.OpenDate, R.Type, C.Title AS CompanyName,
-            (SELECT MAX(M.[Modification Date]) FROM MANAGES M WHERE M.RecallNum = R.RecallNum) AS LastModificationDate
-        FROM RECALL R
-        JOIN COMPANY C ON R.CompanyID = C.ID
-        """)
-            recall = self.cursor.fetchall()
+            SELECT 
+                R.RecallNum, R.ProductName, R.Category, R.Qty, R.Class, R.Reason, 
+                R.Year, R.RiskLevel, R.OpenDate, R.Type, C.Title AS CompanyName,
+                (SELECT MAX(M.[Modification Date]) FROM MANAGES M WHERE M.RecallNum = R.RecallNum) AS LastModificationDate
+            FROM RECALL R
+            JOIN COMPANY C ON R.CompanyID = C.ID
+            """)
+            recalls = self.cursor.fetchall()
             
-            if recall is None:
+            if not recalls:
                 return (1, "Not Found")
-            else:
-             return (0, recall)  
+            
+            # For each recall, fetch the affected states
+            recalls_with_states = []
+            for recall in recalls:
+                recallNum = recall[0]  # Assuming RecallNum is the first column
+                self.cursor.execute("""
+                SELECT GROUP_CONCAT(S.Name, ', ')
+                FROM AFFECTS A
+                JOIN STATE S ON A.StateNum = S.StateNum
+                WHERE A.RecallNum = ?
+                GROUP BY A.RecallNum
+                """, (recallNum,))
+                affected_states = self.cursor.fetchone()[0]
+                if affected_states is None:
+                    affected_states = 'Not set yet'
+                
+                # Combine the recall info with the affected states into a new tuple
+                recall_with_states = recall + (affected_states,)
+                recalls_with_states.append(recall_with_states)
+                
+            return (0, recalls_with_states)
         finally:
             self.close()
             
@@ -398,6 +452,31 @@ class DBManager:
             return (0, "Success")
         except sqlite3.IntegrityError as e:
             return (1, f"Integrity Error: {e}")
+        except Exception as e:
+            return (2, f"Unexpected Error: {e}")
+        finally:
+            self.close()
+            
+    def get_affected_states(self, recall_num):
+        """
+        Retrieves the states affected by a recall.
+        """
+        affected_states = []
+        try:
+            self.connect()
+            # Select affected states
+            self.cursor.execute("""
+            SELECT S.Name 
+            FROM AFFECTS A
+            JOIN STATE S ON A.StateNum = S.StateNum
+            WHERE A.RecallNum = ?""", (recall_num,))
+            
+            affected_states = [state[0] for state in self.cursor.fetchall()]
+            
+            if not affected_states:
+                return (1, "No affected states found for this recall number.")
+            
+            return (0, affected_states)
         except Exception as e:
             return (2, f"Unexpected Error: {e}")
         finally:

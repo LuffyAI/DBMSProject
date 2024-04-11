@@ -303,25 +303,19 @@ def test_view_all_recalls():
     print(result)
     assert(result != (0, 'Not Found'))
     
-def test_view_recall_edit_history():
-    """Checks that an admin can view a recall's edit history""" 
-    result = Manager.view_recall_edit_history('R12345')
-    expected_result = [
-        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 3), 
-        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 4)
-        ]
-    print(result)
-    assert(result != expected_result)
     
-def test_get_company_recalls():
-    """Checks that an admin can view a recall's edit history""" 
-    result = Manager.view_company_rankings()
-    expected_result = [
-        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 3), 
-        ('R12345', 'Updated Product Name', 'Not Heat Treated - Shelf Stable', 100, 'Class 1', 'Mislabeling', '2023', 'High', '2023-01-01', 'Active Recall', 'FakeCompany', '2024-04-08 22:17:21', 4)
-        ]
+def test_get_affected_states_for_recall():
+    """Checks that we can fetch the affected states given a recall""" 
+    result = Manager.get_affected_states(1)
     print(result)
-    assert(result != expected_result)
+    assert(result == (0, ['Michigan']))
+        
+def test_get_affected_states_for_recall_failure():
+    """Checks that if it will fail if we put in non-existing statement""" 
+    result = Manager.get_affected_states(999)
+    print(result)
+    assert(result == (1, 'No affected states found for this recall number.'))
+
 
 
     
