@@ -32,6 +32,22 @@ BEGIN
     WHERE ID = OLD.CompanyID;
 END;
 
+CREATE TRIGGER UpdateTotalRecalls
+AFTER UPDATE OF CompanyID ON RECALL
+FOR EACH ROW
+WHEN OLD.CompanyID != NEW.CompanyID
+BEGIN
+    -- Decrement the total recalls count for the old company
+    UPDATE COMPANY
+    SET TotalRecalls = TotalRecalls - 1
+    WHERE ID = OLD.CompanyID;
+
+    -- Increment the total recalls count for the new company
+    UPDATE COMPANY
+    SET TotalRecalls = TotalRecalls + 1
+    WHERE ID = NEW.CompanyID;
+END;
+
 CREATE TRIGGER BeforeInsertIS_SUBSCRIBED
 BEFORE INSERT ON IS_SUBSCRIBED
 FOR EACH ROW

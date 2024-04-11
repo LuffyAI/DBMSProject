@@ -199,7 +199,7 @@ class TestAPIEndpoints(unittest.TestCase):
         response = requests.get(url)
         response_data = response.json() 
         print(response_data)
-        expected_output = [['FakeCompany', 2],
+        expected_output = [['FakeCompany', 3],
                            ['Taylor Farms’ Consumer Line', 1], 
                            ['Chief Operating Officer', 1], 
                            ['General Manager, Macgregors Meat &amp; Seafood Ltd', 1], 
@@ -230,13 +230,48 @@ class TestAPIEndpoints(unittest.TestCase):
             "openDate": "2023-01-01",
             "closeDate": "2023-01-01",
             "type": "Active Recall",
-            "companyID": "1",
-            "states": [],
+            "companyID": "FakeCompany",
+            "states": ["Michigan"],
             "admin_id": 3,
         }
         
         url = f"{self.BASE_URL}/add"
         response = requests.post(url, json=recall_details)
+        response_data = response.json()
+
+        # Adjust the expected_output according to what the API actually returns
+        expected_output = "Success"  # This should match the actual expected detail your API returns
+
+        # Print response data for debugging
+        print(response_data)
+
+        # Assertions
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_data.get('message'), expected_output)
+        
+        
+          
+    def test_edit_recall(self):
+        recall_details = {
+            "recall_num": "004-2024",
+            "product_name": "Example2",
+            "category": "Not Heat Treated - Shelf Stable",
+            "qty": 100,
+            "class": "Class 1",
+            "reason": "Mislabeling",
+            "year": "2023",
+            "risklevel": "High",
+            "openDate": "2023-01-01",
+            "closeDate": "2023-01-01",
+            "type": "Active Recall",
+            "companyID": "FakeCompany",
+            "states": ["Texas"],
+            "admin_id": 3,
+        }
+        
+        url = f"{self.BASE_URL}/edit"
+        response = requests.post(url, json=recall_details)
+        print(response)
         response_data = response.json()
 
         # Adjust the expected_output according to what the API actually returns

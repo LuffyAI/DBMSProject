@@ -59,7 +59,7 @@
 }
 
 table {
-  width: 600px; /* Or any width that suits your design */
+  width: 600px; 
   border-collapse: collapse;
   margin-top: 20px; /* Added space above the table for clarity */
 }

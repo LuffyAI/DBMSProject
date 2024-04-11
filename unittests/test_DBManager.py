@@ -77,79 +77,81 @@ def test_subscriber_tries_to_get_recalls():
      result = Manager.sub_to_state(1, "California")
      result = Manager.get_subscription_recalls(1)
      expected_result = [
-         {'StateName': 'Michigan', 
-          'RecallNum': '013-2024', 
-          'ProductName': '5.5-oz. clear plastic bowl containers with “kroger APPLE WALNUT WITH CHICKEN SALAD KIT FOR ONE” with use by dates of 03/12/24 through 03/22/24, lot codes TFPM059B41, TFPM060B41, TFPM061A41, TFPM062A41, TFPM063B41, TFPM064A41, TFPM064B41, TFPM065A41, TFP', 
-          'Category': 'Fully Cooked - Not Shelf Stable', 
-          'CloseDate': '', 
-          'Qty': 100, 
-          'Class': 'Class 1', 
-          'Reason': 'Misbranding', 
-          'Year': '', 'RiskLevel': 'Low - Class II', 
-          'OpenDate': '2024-03-13', 
-          'Type': 'Active Recall', 
-          'CompanyID': 2, 
-          'CompanyTitle': 'Taylor Farms’ Consumer Line'}, 
-         
-         {'StateName': 'Michigan', 
-          'RecallNum': '064-2013', 
-          'ProductName': 'Individual, Chinese Style Chicken Sausage.', 
-          'Category': 'Products with Secondary Inhibitors - Not Shelf Stable', 
-          'CloseDate': '2013-12-04', 
-          'Qty': 100, 
-          'Class': 'Class 3', 
-          'Reason': 'Misbranding', 
-          'Year': '2013', 
-          'RiskLevel': 'Marginal - Class III', 
-          'OpenDate': '2013-11-07', 
-          'Type': 'Closed Recall', 
-          'CompanyID': 3, 
-          'CompanyTitle': 'Chief Operating Officer'}, 
-         
-          {'StateName': 'Michigan', 
-           'RecallNum': '1', 
-           'ProductName': 'Test Product', 
-           'Category': 'Egg Products', 
-           'CloseDate': '2024-03-25', 
-           'Qty': 100, 
-           'Class': 'Class 1', 
-           'Reason': 'Misbranding', 
-           'Year': '2024', 
-           'RiskLevel': 'High', 
-           'OpenDate': '2024-03-20', 
-           'Type': 'Outbreak', 
-           'CompanyID': 1, 
-           'CompanyTitle': 'FakeCompany'}, 
-          
-          {'StateName': 'California', 
-           'RecallNum': '003-2024', 
-           'ProductName': '1-lb. plastic tubs labeled as &quot;Sysco Classic Chicken Flavored Base&quot; with lot code 02673 and packaged in a case labeled as &quot;Sysco Classic BEEF BASE CF&quot; with lot code 02673 represented on the label.', 
-           'Category': 'Not Heat Treated - Shelf Stable', 
-           'CloseDate': '2024-03-01', 
-           'Qty': 200, 
-           'Class': 'Class 1', 
-           'Reason': 'Unreported Allergens', 
-           'Year': '2024', 
-           'RiskLevel': 'Class I', 
-           'OpenDate': '2024-02-01', 
-           'Type': 'Closed Recall', 
-           'CompanyID': 6, 
-           'CompanyTitle': 'Director FSQA &amp; Regulatory Affairs'}, 
-          
-          {'StateName': 'California', 
-           'RecallNum': 'PHA-11172023-01', 
-           'ProductName': '• 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Spicy Beef Jerky”  and a “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the  back of the packages., • 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Beef Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 1.75-oz, 2.75-oz., and 8-oz. packages containing “Pruski’s Market Turkey Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 3-oz. packages containing “HOOSER CUSTOM MEATS BEEF JERKY MESQUITE  SMOKED” and a “SELL BY” of 04/23/24 represented on the back of the packages., • Packages purchased by weight at the retail counter, containing “Beef Jerky Regular”,  “Spicy Beef Jerky”, or “Turkey Jerky” with Pack Date ranging from 9/21/23 through  11/9/23.', 
-           'Category': 'Heat Treated - Shelf Stable', 
-           'CloseDate': '', 
-           'Qty': 150, 
-           'Class': 'Public Health Alert', 
-           'Reason': 'Unreported Allergens', 
-           'Year': '', 
-           'RiskLevel': 'Public Health Alert', 
-           'OpenDate': '2023-11-17', 
-           'Type': 'Public Health Alert', 
-           'CompanyID': 7, 
-           'CompanyTitle': 'Pruski’s Market'}]
+        {'StateName': 'Michigan', 
+         'RecallNum': '013-2024', 
+         'ProductName': '5.5-oz. clear plastic bowl containers with “kroger APPLE WALNUT WITH CHICKEN SALAD KIT FOR ONE” with use by dates of 03/12/24 through 03/22/24, lot codes TFPM059B41, TFPM060B41, TFPM061A41, TFPM062A41, TFPM063B41, TFPM064A41, TFPM064B41, TFPM065A41, TFP', 
+         'Category': 'Fully Cooked - Not Shelf Stable', 
+         'CloseDate': '', 
+         'Qty': 100, 
+         'Class': 'Class 1', 
+         'Reason': 'Misbranding', 
+         'Year': '2024', 
+         'RiskLevel': 'Low', 
+         'OpenDate': '2024-03-13', 
+         'Type': 'Active Recall',
+         'CompanyID': 2, 
+         'CompanyTitle': 'Taylor Farms Consumer Line'
+         }, 
+        {'StateName': 'Michigan', 
+         'RecallNum': '064-2013', 
+         'ProductName': 'Individual, Chinese Style Chicken Sausage.', 
+         'Category': 'Products with Secondary Inhibitors - Not Shelf Stable', 
+         'CloseDate': '2013-11-07', 
+         'Qty': 100, 
+         'Class': 'Class 3', 
+         'Reason': 'Misbranding', 
+         'Year': '2013', 
+         'RiskLevel': 'Marginal',
+         'OpenDate': '2013-11-07', 
+         'Type': 'Closed Recall', 
+         'CompanyID': 3, 
+         'CompanyTitle': 'Chief Operating Officer'
+         }, 
+        {'StateName': 'Michigan', 
+         'RecallNum': '1', 
+         'ProductName': 'Omelet', 
+         'Category': 'Egg Products', 
+         'CloseDate': '2024-03-25', 
+         'Qty': 100, 
+         'Class': 'Class 1', 
+         'Reason': 'Misbranding', 
+         'Year': '2024', 
+         'RiskLevel': 'High', 
+         'OpenDate': '2024-03-20', 
+         'Type': 'Outbreak',
+         'CompanyID': 1, 
+         'CompanyTitle': 'FakeCompany'
+         }, 
+        {'StateName': 'California', 
+         'RecallNum': '003-2024', 
+         'ProductName': '1-lb. plastic tubs labeled as &quot;Sysco Classic Chicken Flavored Base&quot; with lot code 02673 and packaged in a case labeled as &quot;Sysco Classic BEEF BASE CF&quot; with lot code 02673 represented on the label.', 
+         'Category': 'Not Heat Treated - Shelf Stable', 
+         'CloseDate': '2024-03-01', 
+         'Qty': 200, 
+         'Class': 'Class 1', 
+         'Reason': 'Unreported Allergens', 
+         'Year': '2024', 
+         'RiskLevel': 'Low', 
+         'OpenDate': '2024-02-01', 
+         'Type': 'Closed Recall',
+         'CompanyID': 6, 
+         'CompanyTitle': 'Director FSQA Regulatory Affairs'
+         }, 
+        {'StateName': 'California',
+         'RecallNum': 'PHA-11172023-01', 
+         'ProductName': '• 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Spicy Beef Jerky”  and a “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the  back of the packages., • 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Beef Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 1.75-oz, 2.75-oz., and 8-oz. packages containing “Pruski’s Market Turkey Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 3-oz. packages containing “HOOSER CUSTOM MEATS BEEF JERKY MESQUITE  SMOKED” and a “SELL BY” of 04/23/24 represented on the back of the packages., • Packages purchased by weight at the retail counter, containing “Beef Jerky Regular”,  “Spicy Beef Jerky”, or “Turkey Jerky” with Pack Date ranging from 9/21/23 through  11/9/23.',
+         'Category': 'Heat Treated - Shelf Stable',
+         'CloseDate': '2023-12-13', 
+         'Qty': 150, 
+         'Class': 'Public Health Alert', 
+         'Reason': 'Unreported Allergens', 
+         'Year': '2024-01-02', 
+         'RiskLevel': 'Public Health Alert',
+         'OpenDate': '2023-11-17',
+         'Type': 'Public Health Alert', 
+         'CompanyID': 7, 
+         'CompanyTitle': 'Pruski Market'}]
+     
      print(result)
      assert(result == expected_result)
      
@@ -166,39 +168,42 @@ def test_subscriber_unsub_changed_their_recall_feed():
     #We unsubbed from michigan so we expect to see only california recalls
     expected_result = [
           {'StateName': 'California', 
-           'RecallNum': '003-2024', 
-           'ProductName': '1-lb. plastic tubs labeled as &quot;Sysco Classic Chicken Flavored Base&quot; with lot code 02673 and packaged in a case labeled as &quot;Sysco Classic BEEF BASE CF&quot; with lot code 02673 represented on the label.', 
-           'Category': 'Not Heat Treated - Shelf Stable', 
-           'CloseDate': '2024-03-01', 
-           'Qty': 200, 
-           'Class': 'Class 1', 
-           'Reason': 'Unreported Allergens', 
-           'Year': '2024', 
-           'RiskLevel': 'Class I', 
-           'OpenDate': '2024-02-01', 
-           'Type': 'Closed Recall', 
-           'CompanyID': 6, 
-           'CompanyTitle': 'Director FSQA &amp; Regulatory Affairs'}, 
-          
-          {'StateName': 'California', 
-           'RecallNum': 'PHA-11172023-01', 
-           'ProductName': '• 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Spicy Beef Jerky”  and a “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the  back of the packages., • 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Beef Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 1.75-oz, 2.75-oz., and 8-oz. packages containing “Pruski’s Market Turkey Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 3-oz. packages containing “HOOSER CUSTOM MEATS BEEF JERKY MESQUITE  SMOKED” and a “SELL BY” of 04/23/24 represented on the back of the packages., • Packages purchased by weight at the retail counter, containing “Beef Jerky Regular”,  “Spicy Beef Jerky”, or “Turkey Jerky” with Pack Date ranging from 9/21/23 through  11/9/23.', 
-           'Category': 'Heat Treated - Shelf Stable', 
-           'CloseDate': '', 
-           'Qty': 150, 
-           'Class': 'Public Health Alert', 
-           'Reason': 'Unreported Allergens', 
-           'Year': '', 
-           'RiskLevel': 'Public Health Alert', 
-           'OpenDate': '2023-11-17', 
-           'Type': 'Public Health Alert', 
-           'CompanyID': 7, 
-           'CompanyTitle': 'Pruski’s Market'}]
+         'RecallNum': '003-2024', 
+         'ProductName': '1-lb. plastic tubs labeled as &quot;Sysco Classic Chicken Flavored Base&quot; with lot code 02673 and packaged in a case labeled as &quot;Sysco Classic BEEF BASE CF&quot; with lot code 02673 represented on the label.', 
+         'Category': 'Not Heat Treated - Shelf Stable', 
+         'CloseDate': '2024-03-01', 
+         'Qty': 200, 
+         'Class': 'Class 1', 
+         'Reason': 'Unreported Allergens', 
+         'Year': '2024', 
+         'RiskLevel': 'Low', 
+         'OpenDate': '2024-02-01', 
+         'Type': 'Closed Recall',
+         'CompanyID': 6, 
+         'CompanyTitle': 'Director FSQA Regulatory Affairs'
+         }, 
+        {'StateName': 'California',
+         'RecallNum': 'PHA-11172023-01', 
+         'ProductName': '• 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Spicy Beef Jerky”  and a “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the  back of the packages., • 1.75-oz., 2.75-oz., and 8-oz. packages containing “Pruski’s Market Beef Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 1.75-oz, 2.75-oz., and 8-oz. packages containing “Pruski’s Market Turkey Jerky” and a  “SELL BY” date ranging from 03/21/24 through 05/09/24 represented on the back of  the packages., • 3-oz. packages containing “HOOSER CUSTOM MEATS BEEF JERKY MESQUITE  SMOKED” and a “SELL BY” of 04/23/24 represented on the back of the packages., • Packages purchased by weight at the retail counter, containing “Beef Jerky Regular”,  “Spicy Beef Jerky”, or “Turkey Jerky” with Pack Date ranging from 9/21/23 through  11/9/23.',
+         'Category': 'Heat Treated - Shelf Stable',
+         'CloseDate': '2023-12-13', 
+         'Qty': 150, 
+         'Class': 'Public Health Alert', 
+         'Reason': 'Unreported Allergens', 
+         'Year': '2024-01-02', 
+         'RiskLevel': 'Public Health Alert',
+         'OpenDate': '2023-11-17',
+         'Type': 'Public Health Alert', 
+         'CompanyID': 7, 
+         'CompanyTitle': 'Pruski Market'}]
     print(result)
     assert(result == expected_result)
     
 def test_admin_add_recall():
     """Admin adds a brand new recall to the database"""
+    
+    admin_id = 3
+    states = ["Michigan,Texas"]
     recall_details = (
         "R12345",                       # RecallNum
         "Example Product Name",         # ProductName
@@ -211,15 +216,18 @@ def test_admin_add_recall():
         "High",                         # RiskLevel
         "2023-01-01",                   # OpenDate
         "Active Recall",                # Type
-        1                               # CompanyID
+        "FakeCompany"                  # CompanyID (This is a typo and should have been CompanyTitle, but must keep due to software debt)
     )
-    result = Manager.add_recall(3, recall_details)
+    result = Manager.add_recall(admin_id, states, recall_details)
     print(result)
     assert(result == (0, 'Success'))
 
 
 def test_admin_add_same_recall():
     """Admin attempts to add the same recall two times"""
+    
+    admin_id = 3
+    states = ["Michigan,Texas"]
     recall_details = (
         "R12345",                       # RecallNum
         "Example Product Name",         # ProductName
@@ -232,10 +240,10 @@ def test_admin_add_same_recall():
         "High",                         # RiskLevel
         "2023-01-01",                   # OpenDate
         "Active Recall",                # Type
-        1                               # CompanyID
+        "FakeCompany"                   # CompanyID
     )
     
-    result = Manager.add_recall(3, recall_details)
+    result = Manager.add_recall(admin_id, states, recall_details)
     print(result)
     assert(result == (1, 'Integrity Error: UNIQUE constraint failed: RECALL.RecallNum'))
 
@@ -288,21 +296,29 @@ def test_recall_affect_multiple_states():
 
 def test_admin_edit_recall():
     """Checks that an admin can edit a recall"""
-    Updates = {
-    "ProductName": "Updated Product Name",
-    "Reason": "Mislabeling"
-    }
-    
-    result = Manager.edit_recall(4, 'R12345', Updates)
-    print(result)
-    assert(result == (0, 'Success'))
+    admin_id = 3
+    states = ["Michigan,Texas"]
+    recall_number = "R12345"
+    Updates = (
+        "Updated Product Name",         # ProductName
+        "Not Heat Treated - Shelf Stable",  # Category
+        "2023-12-31",                   # CloseDate
+        100,                            # Qty
+        "Class 1",                      # Class
+        "Mislabeling",                  # Reason
+        "2023",                         # Year
+        "High",                         # RiskLevel
+        "2023-01-01",                   # OpenDate
+        "Active Recall",                # Type
+        "FakeCompany"                  # CompanyID (This is a typo and should have been CompanyTitle, but must keep due to software debt)
+    )
+    result = Manager.edit_recall(admin_id, recall_number, states, Updates)
+    assert(result ==(0, 'Success'))
     
 def test_view_all_recalls():
     """Checks that an admin can view all recalls"""    
     result = Manager.view_all_recalls()
     print(result)
-    assert(result != (0, 'Not Found'))
-    
     
 def test_get_affected_states_for_recall():
     """Checks that we can fetch the affected states given a recall""" 

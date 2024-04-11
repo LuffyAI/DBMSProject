@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AdminPage.css';
-import { useEffect } from 'react'; // Import useEffect here
 import axios from 'axios';
 
-// NEED TO FETCH THE RECALLS FROM THE API ENDPOINT TO DISPLAY ALL THE RECALLS TO THE ADMIN
-// THE ADMIN CAN VIEW ALL RECALLS, ADD A RECALL, AND EDIT RECALLS
-
 const AdminPage = () => {
+  //Hooks used throughout the component
   const [recalls, setRecalls] = useState([]);
+  const [showEditHistoryModal, setShowEditHistoryModal] = useState(false);
+  const [editHistory, setEditHistory] = useState([]);
   const [selectedStates, setSelectedStates] = useState([])
   const [newRecall, setNewRecall] = useState({
     recallNumber: '',
@@ -22,7 +21,8 @@ const AdminPage = () => {
     openDate: '',
     riskLevel: ''
   });
-  const userName = localStorage.getItem('userName'); // Retrieve username from localStorage
+  const userName = localStorage.getItem('userName'); 
+  const adminID = localStorage.getItem('ID'); 
   const [showRankingsModal, setShowRankingsModal] = useState(false);
   const [companyRankings, setCompanyRankings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,35 +33,48 @@ const AdminPage = () => {
   const classes = ['Class 1', 'Class 2', 'Class 3', 'Public Health Alert'];
   const reasons = ['Import Violation', 'Insanitary Conditions', 'Misbranding', 'Mislabeling', 'Processing Defect', 'Produced Without Benefit of Inspection', 'Product Contamination', 'Unfit for Human Consumption', 'Unreported Allergens'];
   const types = ['Outbreak', 'Public Health Alert', 'Active Recall', 'Closed Recall'];
-  const riskLevels = ['High', 'Medium', 'Low'];
+  const riskLevels = ['High', 'Marginal', 'Low', 'Public Health Alert'];
   const companies = [
     'FakeCompany',
-    'Taylor Farms’ Consumer Line',
+    'Taylor Farms Consumer Line',
     'Chief Operating Officer',
-    'General Manager, Macgregors Meat &amp; Seafood Ltd',
+    'General Manager Macgregors Meat Seafood Ltd',
     'Vice President of External Communications',
-    'Director FSQA &amp; Regulatory Affairs', 
-    'Pruski’s Market'
+    'Director FSQA Regulatory Affairs', 
+    'Pruski Market'
   ];
   const states = ['Michigan', 'California', 'Texas'];
   
-  const handleYearChange = (e) => {
-    const yearInput = e.target.value;
-    // Enforce 4-digit input
-    if (/^\d{0,4}$/.test(yearInput)) {
-      setNewRecall({ ...newRecall, year: yearInput });
-    }
-  };
-
+ 
+//Get and post function that fetches data
   const fetchCompanyRankings = async () => {
     try {
       const response = await axios.get('http://localhost:5000/companyRecalls');
-      setCompanyRankings(response.data.details); // Adjust according to the actual response structure
-      console.log(response.data.details)
-      setShowRankingsModal(true);
+      setCompanyRankings(response.data.details);
+      console.log(response.data.details) 
+      setShowRankingsModal(true); //Shows the company total recalls
     } catch (error) {
       console.error('Failed to fetch company rankings', error);
     }
+  };
+
+  const fetchEditHistory = async (recallNumber) => {
+    try {
+      const response = await axios.post(`http://localhost:5000/editHistory`, { recall_num: recallNumber });
+      if (response.data === 'Not Found' || response.status === 404) {
+        // If no entries in manages table for the corresponding recall number
+        setEditHistory('No edit history yet.');
+      } else if (response.data.details) {
+        setEditHistory(response.data.details);
+      } else {
+        // Default message for any other kind of response
+        setEditHistory('Unexpected response format.');
+      }
+    } catch (error) {
+      console.error('Failed to fetch edit history', error);
+      setEditHistory('No edit history found!');
+    }
+    setShowEditHistoryModal(true);
   };
 
   const RankingsModal = ({ show, onClose, rankings }) => {
@@ -75,7 +88,7 @@ const AdminPage = () => {
           <h2>Company Recall Rankings</h2>
           <ul>
             {rankings.map((rank, index) => (
-              // Assuming rank[0] is the company name and rank[1] is the ranking number
+              // rank[0] is the company name and rank[1] is the ranking number
               <li key={index}>{rank[0]} - {rank[1]} recalls</li>
             ))}
           </ul>
@@ -84,14 +97,51 @@ const AdminPage = () => {
       </div>
     );
   };
+
+
+  const EditHistoryModal = ({ show, onClose, history }) => {
+  if (!show) return null;
+
+  const renderHistoryContent = () => {
+    if (typeof history === 'string') {
+      return <p>{history}</p>;
+    } else if (Array.isArray(history) && history.length > 0) {
+      return (
+        <ul>
+          {history.map((edit, index) => {
+            // Dynamically access the last two elements for last edit time and admin ID
+            const lastEditTime = edit[edit.length - 2]; // Second to last element
+            const adminId = edit[edit.length - 1]; // Last element
+            return (
+              <li key={index}>
+                Last Edit Time: {lastEditTime}, Admin ID: {adminId}
+              </li>
+            );
+          })}
+        </ul>
+      );
+    } else {
+      return <p>No edit history yet.</p>;
+    }
+  };
+
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <h2>Edit History</h2>
+        {renderHistoryContent()}
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
   
 
-   // Define fetchRecalls outside of useEffect
+//Fetches every single recall in the entire database and their affected states   
    const fetchRecalls = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get('http://localhost:5000/recalls');
-      // Check your actual API response structure and adjust accordingly
       const recallsArray = response.data.details;
       console.log(recallsArray);
 
@@ -108,8 +158,8 @@ const AdminPage = () => {
         openDate: recall[8],
         type: recall[9],
         company: recall[10],
-        closeDate: recall[11],
-        affectedStates: recall[12] || 'Not set yet',
+        closeDate: recall[12],
+        affectedStates: recall[13] || 'Not set yet',
       }));
 
       setRecalls(recallsTransformed);
@@ -140,11 +190,12 @@ const AdminPage = () => {
       type: newRecall.type,
       companyID: newRecall.company,
       states: selectedStates,
-      admin_id: 3, // Adjust as needed
+      admin_id: adminID, // Adjust as needed
     };
 
     try {
       await axios.post('http://localhost:5000/add', payload);
+      alert('Recall added successfully!');
       setNewRecall({
         recallNumber: '',
         name: '',
@@ -161,14 +212,56 @@ const AdminPage = () => {
       });
       setSelectedStates([]);
 
-      fetchRecalls(); // Refresh recall list
+      fetchRecalls(); 
     } catch (error) {
       console.error('Failed to add recall', error);
     }
   };
+
+  const handleEditRecall = async () => {
+    const payload = {
+      recall_num: newRecall.recallNumber,
+      product_name: newRecall.name,
+      category: newRecall.category,
+      closeDate: newRecall.closeDate,
+      qty: parseInt(newRecall.qty, 10),
+      class: newRecall.class,
+      reason: newRecall.reason,
+      year: newRecall.year,
+      risklevel: newRecall.riskLevel,
+      openDate: newRecall.openDate,
+      type: newRecall.type,
+      companyID: newRecall.company, 
+      states: selectedStates,
+      admin_id: adminID, 
+    };
+  
+    try {
+      await axios.post('http://localhost:5000/edit', payload);
+      alert('Recall edited successfully!');
+      setNewRecall({
+        recallNumber: '',
+        name: '',
+        category: '',
+        closeDate: '',
+        qty: '',
+        class: '',
+        reason: '',
+        year: '',
+        type: '',
+        openDate: '',
+        riskLevel: '',
+        company: '',
+      });
+      setSelectedStates([]);
+      fetchRecalls(); 
+    } catch (error) {
+      console.error('Failed to edit recall', error);
+      alert('Failed to edit recall');
+    }
+  };
  
   const handleStateChange = (e) => {
-    // Collect all selected options
     const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
     setSelectedStates(selectedOptions);
   };
@@ -184,7 +277,7 @@ const AdminPage = () => {
   return (
     <div>
   {isLoading ? (
-    <p>Loading recalls...</p> // Display loading message
+    <p>Loading recalls...</p> 
   ) : (
     <>
       <h2>Admin Page</h2>
@@ -255,6 +348,7 @@ const AdminPage = () => {
           </select>
           
           <button type="button" onClick={handleAddRecall}>Add Recall</button>
+          <button type="button" onClick={handleEditRecall}>Edit Recall</button>
         </form>
       </div>
       <table>
@@ -293,7 +387,7 @@ const AdminPage = () => {
       <td>{recall.company}</td>
       <td>{recall.affectedStates}</td>
       <td>
-        <button>Edit</button>
+      <button onClick={() => fetchEditHistory(recall.recallNumber)}>Edit</button>
       </td>
     </tr>
   ))}
@@ -304,6 +398,11 @@ const AdminPage = () => {
         onClose={() => setShowRankingsModal(false)} 
         rankings={companyRankings} 
       />
+      <EditHistoryModal
+      show={showEditHistoryModal}
+      onClose={() => setShowEditHistoryModal(false)}
+      history={editHistory}
+    />
     </>
   )}
 </div>
@@ -311,79 +410,4 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-  /*
-  return (
-    <div>
-      <h2>Admin Page</h2>
-      <p>Welcome, {userName}!</p>
-      <button onClick={() => fetchCompanyRankings()}>Rankings</button>
-      <div>
-        <h3>Add Recall</h3>
-        <form>
-          <input type="text" name="recallNumber" value={newRecall.recallNumber} onChange={handleInputChange} placeholder="Recall Number" required />
-          <input type="text" name="name" value={newRecall.name} onChange={handleInputChange} placeholder="Name" required />
-          <input type="text" name="category" value={newRecall.category} onChange={handleInputChange} placeholder="Category" required />
-          <input type="date" name="closeDate" value={newRecall.closeDate} onChange={handleInputChange} placeholder="Close Date" required />
-          <input type="text" name="qty" value={newRecall.qty} onChange={handleInputChange} placeholder="Qty" required />
-          <input type="text" name="class" value={newRecall.class} onChange={handleInputChange} placeholder="Class" required />
-          <input type="text" name="reason" value={newRecall.reason} onChange={handleInputChange} placeholder="Reason" required />
-          <input type="text" name="year" value={newRecall.year} onChange={handleInputChange} placeholder="Year" required />
-          <input type="text" name="type" value={newRecall.type} onChange={handleInputChange} placeholder="Type" required />
-          <input type="date" name="openDate" value={newRecall.openDate} onChange={handleInputChange} placeholder="Open Date" required />
-          <input type="text" name="riskLevel" value={newRecall.riskLevel} onChange={handleInputChange} placeholder="Risk Level" required />
-          <input type="text" name="Company" value={newRecall.company} onChange={handleInputChange} placeholder="Company" required />
-          <button type="button" onClick={handleAddRecall}>Add Recall</button>
-        </form>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Recall#</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Close Date</th>
-            <th>Qty</th>
-            <th>Class</th>
-            <th>Reason</th>
-            <th>Year</th>
-            <th>Type</th>
-            <th>Open Date</th>
-            <th>Risk Level</th>
-            <th>Company</th>
-            <th>States</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-  {recalls.map(recall => (
-    <tr key={recall.id}>
-      <td>{recall.recallNumber}</td>
-      <td>{recall.name}</td>
-      <td>{recall.category}</td>
-      <td>{recall.closeDate}</td>
-      <td>{recall.qty}</td>
-      <td>{recall.class}</td>
-      <td>{recall.reason}</td>
-      <td>{recall.year}</td>
-      <td>{recall.type}</td>
-      <td>{recall.openDate}</td>
-      <td>{recall.riskLevel}</td>
-      <td>{recall.company}</td>
-      <td>{recall.affectedStates}</td>
-      <td>
-        <button>Edit</button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-      </table>
-      <RankingsModal 
-      show={showRankingsModal} 
-      onClose={() => setShowRankingsModal(false)} 
-      rankings={companyRankings} 
-    />
-    </div>
-  );
-};
-export default AdminPage;*/
-
+ 

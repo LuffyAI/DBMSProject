@@ -318,11 +318,12 @@ class DBManager:
         try:
             self.connect()
             # Fetch the basic recall information and company name
+            
             self.cursor.execute("""
             SELECT 
                 R.RecallNum, R.ProductName, R.Category, R.Qty, R.Class, R.Reason, 
                 R.Year, R.RiskLevel, R.OpenDate, R.Type, C.Title AS CompanyName,
-                (SELECT MAX(M.[Modification Date]) FROM MANAGES M WHERE M.RecallNum = R.RecallNum) AS LastModificationDate
+                (SELECT MAX(M.[Modification Date]) FROM MANAGES M WHERE M.RecallNum = R.RecallNum) AS LastModificationDate, R.CloseDate
             FROM RECALL R
             JOIN COMPANY C ON R.CompanyID = C.ID
             """)
@@ -349,6 +350,7 @@ class DBManager:
                 # Combine the recall info with the affected states into a new tuple
                 recall_with_states = recall + (affected_states,)
                 recalls_with_states.append(recall_with_states)
+                print(recalls_with_states)
                 
             return (0, recalls_with_states)
         finally:
@@ -398,30 +400,60 @@ class DBManager:
             if not edits:
                 return (1, "Not Found")
             else:
-                return edits
+                return (0, edits)
         finally:
             self.close()
 
         
-    def edit_recall(self, admin_id, recall_num, updates):
+    def edit_recall(self, admin_id, recall_num, updated_states, updated_recall_details):
         """
-        Updates recall information. 'updates' should be a dictionary with column names as keys and new values as values.
-        Also logs the edit action by an admin.
+        Edits an existing recall record in the RECALL table and updates the associated affected states.
         """
         try:
             self.connect()
-            # Construct the SET part of the SQL command
-            set_clause = ", ".join([f"{key} = ?" for key in updates.keys()])
-            sql_command = f"UPDATE RECALL SET {set_clause} WHERE RecallNum = ?"
-            self.cursor.execute(sql_command, list(updates.values()) + [recall_num])
-            self.conn.commit()
             
-            # Log the admin's edit action with the current datetime
+            # Assuming updated_recall_details is a tuple and the last element is the company title
+            company_title = updated_recall_details[-1]
+            
+            # Fetch the company ID based on the provided company title
+            self.cursor.execute("SELECT ID FROM COMPANY WHERE Title = ?", (company_title,))
+            company_row = self.cursor.fetchone()
+            
+            if company_row is None:
+                print(f"Company with title {company_title} not found.")
+                return (1, "Company not found")
+            
+            companyID = company_row[0]
+            
+            # Replace company title with companyID in updated_recall_details
+            updated_details_list = list(updated_recall_details[:-1])  # Exclude the last element (company title)
+            updated_details_list.append(companyID)  # Add companyID at the end
+            
+            # Update the recall entry in the RECALL table
+            self.cursor.execute(
+                "UPDATE RECALL SET ProductName=?, Category=?, CloseDate=?, Qty=?, Class=?, Reason=?, Year=?, RiskLevel=?, OpenDate=?, Type=?, CompanyID=? WHERE RecallNum=?", 
+                tuple(updated_details_list) + (recall_num,))
+            
+            # Update the affected states
+            # First, clear existing state associations for this recall
+            self.cursor.execute("DELETE FROM AFFECTS WHERE RecallNum=?", (recall_num,))
+            
+            # Then, insert updated states
+            for state_name in updated_states:
+                self.cursor.execute("SELECT StateNum FROM STATE WHERE Name = ?", (state_name,))
+                state_num = self.cursor.fetchone()
+                if state_num:
+                    self.cursor.execute(
+                        "INSERT INTO AFFECTS (StateNum, RecallNum) VALUES (?, ?)", 
+                        (state_num[0], recall_num))
+            
+            # Automatically log this edit action
             modification_date = datetime.now()
             edit_result = self.log_admin_edit_history(admin_id, recall_num, modification_date) 
             if edit_result[0] != 0:
-                 return edit_result
+                return edit_result
             
+            self.conn.commit()
             return (0, "Success")
         except sqlite3.IntegrityError as e:
             return (1, f"Integrity Error: {e}")

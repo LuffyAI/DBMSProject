@@ -49,7 +49,7 @@ CREATE TABLE RECALL (
     RecallNum VARCHAR(20) NOT NULL,
     ProductName VARCHAR(200) NOT NULL,
     Category VARCHAR(100) CHECK (Category IN ('Egg Products', 'Fully Cooked - Not Shelf Stable', 'Heat Treated - Not Fully Cooked - Not Shelf Stable', 'Heat Treated - Shelf Stable', 'Not Heat Treated - Shelf Stable', 'Products with Secondary Inhibitors - Not Shelf Stable', 'Raw - Intact', 'Raw - Non-Intact', 'Slaughter', 'Thermally Processed - Commercially Sterile', 'Unknown')) NOT NULL,
-    CloseDate DATE ,
+    CloseDate DATE,
     Qty INT NOT NULL,
     Class VARCHAR(20) CHECK (Class IN ('Class 1', 'Class 2', 'Class 3', 'Public Health Alert')) NOT NULL,
     Reason VARCHAR(100) CHECK (Reason IN ('Import Violation', 'Insanitary Conditions', 'Misbranding', 'Mislabeling', 'Processing Defect', 'Produced Without Benefit of Inspection', 'Product Contamination', 'Unfit for Human Consumption', 'Unreported Allergens')) NOT NULL,

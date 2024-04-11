@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './AccountPage.css'; 
-import { useEffect } from 'react'; // Import useEffect here
-import axios from 'axios'; // Import axios for making HTTP requests
-
-// NEED TO UPDATE - WHEN NOT SUBSCRIBED TO ANYTHING, SHOW NOTHING IN THE RECALL TABLE, WHEN THE USER
-// SUBSCRIBES TO SOMETHING, SHOW THEM THE RECALLS FROM THAT STATE
-
+import axios from 'axios'; 
 
 const states = [
   "California", "Michigan", "Texas"
@@ -18,7 +13,7 @@ function AccountPage({ userName }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-    // Define fetchRecallDetails outside of useEffect so it can be reused
+   
     const fetchRecallDetails = async () => {
       if (!subscriber_id) {
           setRecalls([]);
@@ -44,7 +39,6 @@ function AccountPage({ userName }) {
         try {
           const response = await axios.post('http://localhost:5000/fetchSubbedStates', { subscriber_id });
           if (response.data && response.data.statelist) {
-            // Assuming response.data.statelist is an array of state names the user is subscribed to
             setSelectedStates(response.data.statelist.map(state => state.StateName));
           }
         } catch (error) {
@@ -177,13 +171,13 @@ function AccountPage({ userName }) {
       <th>Type</th>
       <th>Open Date</th>
       <th>Risk Level</th>
-      <th>Company Title</th> {/* Assuming you want to add this as well */}
+      <th>Company Title</th> {/* Table column headers */}
     </tr>
   </thead>
                     <tbody>
                         {currentItems.map((recall, index) => (
                             <tr key={index}>
-                                {/* Replace these with your actual data fields from the API */}
+                                {/* Data to fill into table columns */}
                                 <td>{recall.RecallNum}</td>
                                 <td>{recall.ProductName}</td>
                                 <td>{recall.Category}</td>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './WebPages/SignUpIn/LoginPage';
 import SubscriberPage from './WebPages/Dashboard/AccountPage'; 
-import AdminPage from './WebPages/Dashboard/AdminPage'; // Import the AdminPage component
+import AdminPage from './WebPages/Dashboard/AdminPage'; 
 import axios from 'axios';
 
 
@@ -29,7 +29,7 @@ const App = () => {
     try {
       const response = await axios.get('http://localhost:5000/protected', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}` // Assuming the token is stored in localStorage
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
         }
       });
       if (response.status === 200) {
