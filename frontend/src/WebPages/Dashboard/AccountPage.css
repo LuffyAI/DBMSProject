@@ -1,5 +1,5 @@
 .account-page {
-  max-width: 80%;
+  max-width: 600px;
   margin: 20px auto;
   padding: 20px;
   border: 1px solid #ccc;
@@ -56,9 +56,6 @@
 /* Wrap table in a div with class .table-responsive */
 .table-responsive {
   overflow-x: auto; /* Scroll horizontally if the table overflows */
-  display: flex;
-  width: 100%;
-  justify-content: center
 }
 
 table {

@@ -324,36 +324,27 @@ def update_recall():
         recall_details = request.json
         recall_number = recall_details.get("recall_num")  
         
-        # Ensure all fields are correctly accessed
-        edit_recall_payload = (
-            recall_details["product_name"],  # Direct access, assuming "product_name" is mandatory
-            recall_details.get("category"),
-            recall_details.get("closeDate"),
-            recall_details.get("qty"),
-            recall_details.get("class"),
-            recall_details.get("reason"),
-            recall_details.get("year"),
-            recall_details.get("risklevel"),
-            recall_details.get("openDate"),
-            recall_details.get("type"),
-            recall_details.get("companyID"),
-        )
-        
-        print(request.json)
-        
-        states = recall_details.get("states", [])  # Provide a default empty list if not found
+        # Check if critical details are provided
+        if 'product_name' not in recall_details or 'companyID' not in recall_details:
+            return jsonify({"error": "Missing mandatory field(s)"}), 400
+
+        print(request.json)  # Consider using logging.debug for production
+
+        states = recall_details.get("states", [])  # Default to empty if not provided
         admin_id = recall_details.get("admin_id")
         
-        result, message = db.edit_recall(admin_id,recall_number, states, edit_recall_payload)
+        # Assuming db.edit_recall properly handles the details
+        result, message = db.edit_recall(admin_id, recall_number, states, recall_details)
+        print(result)
         
         if result == 1:
             return jsonify({"error": "Not Found", "details": message}), 404
         elif result == 0:
             return jsonify({"message": "Success", "details": message}), 200
         else:
-            print("hello")
+            return jsonify({"error": "Unhandled result", "details": message}), 500
     except Exception as e:
-        return jsonify({"error": "Unknown", "details": str(e)}), 500
+        return jsonify({"error": "Server Error", "details": str(e)}), 500
     
 @app.route("/editHistory", methods=["POST"])
 def get_recall_history():

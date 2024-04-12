@@ -307,7 +307,7 @@ class DBManager:
             if recall is None:
                 return (1, "Not Found")
             else:
-             return (0, recall)
+             return recall  
         finally:
             self.close()
             
@@ -408,37 +408,40 @@ class DBManager:
     def edit_recall(self, admin_id, recall_num, updated_states, updated_recall_details):
         """
         Edits an existing recall record in the RECALL table and updates the associated affected states.
+        Recall details are expected as individual variables for clarity and to avoid list manipulation.
         """
         try:
             self.connect()
             
-            # Assuming updated_recall_details is a tuple and the last element is the company title
-            company_title = updated_recall_details[-1]
-            
             # Fetch the company ID based on the provided company title
+            company_title = updated_recall_details['companyID']  # Ensure this key matches what's in your details dictionary
             self.cursor.execute("SELECT ID FROM COMPANY WHERE Title = ?", (company_title,))
             company_row = self.cursor.fetchone()
-            
+
             if company_row is None:
                 print(f"Company with title {company_title} not found.")
                 return (1, "Company not found")
-            
+
             companyID = company_row[0]
+
+            # Update the recall record directly inside the execute method
+            self.cursor.execute("""
+                UPDATE RECALL SET
+                    ProductName = ?, Category = ?, CloseDate = ?, Qty = ?, Class = ?,
+                    Reason = ?, Year = ?, RiskLevel = ?, OpenDate = ?, Type = ?, CompanyID = ?
+                WHERE RecallNum = ?
+                """, (
+                updated_recall_details['product_name'], updated_recall_details['category'],
+                updated_recall_details['closeDate'], updated_recall_details['qty'],
+                updated_recall_details['class'], updated_recall_details['reason'],
+                updated_recall_details['year'], updated_recall_details['risklevel'],
+                updated_recall_details['openDate'], updated_recall_details['type'],
+                companyID, recall_num))
             
-            # Replace company title with companyID in updated_recall_details
-            updated_details_list = list(updated_recall_details[:-1])  # Exclude the last element (company title)
-            updated_details_list.append(companyID)  # Add companyID at the end
+            # Delete existing affected states for this recall
+            self.cursor.execute("DELETE FROM AFFECTS WHERE RecallNum = ?", (recall_num,))
             
-            # Update the recall entry in the RECALL table
-            self.cursor.execute(
-                "UPDATE RECALL SET ProductName=?, Category=?, CloseDate=?, Qty=?, Class=?, Reason=?, Year=?, RiskLevel=?, OpenDate=?, Type=?, CompanyID=? WHERE RecallNum=?", 
-                tuple(updated_details_list) + (recall_num,))
-            
-            # Update the affected states
-            # First, clear existing state associations for this recall
-            self.cursor.execute("DELETE FROM AFFECTS WHERE RecallNum=?", (recall_num,))
-            
-            # Then, insert updated states
+           #For each state in the provided states array, find its StateNum and insert into AFFECTS table
             for state_name in updated_states:
                 self.cursor.execute("SELECT StateNum FROM STATE WHERE Name = ?", (state_name,))
                 state_num = self.cursor.fetchone()
@@ -447,20 +450,30 @@ class DBManager:
                         "INSERT INTO AFFECTS (StateNum, RecallNum) VALUES (?, ?)", 
                         (state_num[0], recall_num))
             
-            # Automatically log this edit action
+            # Automatically log this action
             modification_date = datetime.now()
             edit_result = self.log_admin_edit_history(admin_id, recall_num, modification_date) 
             if edit_result[0] != 0:
-                return edit_result
+                    return edit_result
             
+            
+            
+
+            # Commit the changes
             self.conn.commit()
+
+            # Further operations such as updating states or logging can be performed here
+
             return (0, "Success")
         except sqlite3.IntegrityError as e:
+            print(e)
             return (1, f"Integrity Error: {e}")
         except Exception as e:
+            print(e)
             return (2, f"Unexpected Error: {e}")
         finally:
             self.close()
+
 
     def set_affected_states(self, admin_id,recall_num, state_nums):
         """
